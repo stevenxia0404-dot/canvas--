@@ -1,3 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-md: 700px;
+}
+
 body {
   margin: 0;
 }
