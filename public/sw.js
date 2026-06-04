@@ -1,4 +1,5 @@
-const CACHE_NAME = 'canvas-academy-v2';
+const CACHE_VERSION = 'v2.1-20260604';
+const CACHE_NAME = `canvas-academy-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   '/favicon.svg',
   '/manifest.json',
