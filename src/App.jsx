@@ -385,7 +385,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
 // ==========================================
 // 组件：Node 3 操作台
 // ==========================================
-function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, category, onSecretClick }) {
+function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, category, onSecretClick }) {
   const activeMission = currentMission || { id: 'dev', name: 'DEV', variants: [{glass:'long_glass',seq:'ice'}] };
   const [glassContents, setGlassContents] = useState([]);
   const [isShaking, setIsShaking] = useState(false);
@@ -576,7 +576,7 @@ export default function App() {
   const [flippedMissions, setFlippedMissions] = useState([]);
   const [failCount, setFailCount] = useState(0);
   const [isDevOpen, handleSecretClick, closeDev] = useTripleClick();
-  const [agentList, setAgentList] = useState([]);
+
   const [category, setCategory] = useState('bar');
   const audioRef = useRef(null);
 
@@ -657,7 +657,7 @@ export default function App() {
       
       {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} />}
       {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} />}
-      {currentView === 'workspace' && <Workspace agentData={agentData} currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} />}
+      {currentView === 'workspace' && <Workspace currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} />}
       {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={handleSecretClick} />}
 
       {isDevOpen && (
@@ -671,16 +671,8 @@ export default function App() {
             <button onClick={()=>setCurrentView('workspace')} className="text-left hover:bg-white/10">&gt; NODE 3 (WORKSPACE)</button>
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
-            <div className="border-t border-red-900 mt-1 pt-1">
-              <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents`,{headers:fetchOpts.headers});const d=await r.json();setAgentList(d)}catch(e){alert('Backend unreachable')}}} className="text-left text-[#56b6c2] hover:bg-white/10 w-full">&gt; FETCH AGENT DATA</button>
-              {agentList.length > 0 && (
-                <div className="mt-2 max-h-40 overflow-auto text-[8px]">
-                  {agentList.map((a,i)=>(
-                    <div key={i} className="border-b border-gray-800 py-1">{a.name} | {a.emp_id} | {a.dept} | {a.created_at}</div>
-                  ))}
-                </div>
-              )}
-            </div>
+
+
         </div>
       )}
     </div>
