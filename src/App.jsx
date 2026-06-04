@@ -1,50 +1,105 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+// Cloudflare Worker API (部署后替换为实际 URL)
+const API_BASE = 'https://canvas-academy-api.YOUR-SUBDOMAIN.workers.dev';
+
+// 三击解锁管理后台 (防作弊)
+function useTripleClick(timeoutMs = 2000) {
+  const [isOpen, setIsOpen] = useState(false);
+  const countRef = useRef(0);
+  const timerRef = useRef(null);
+
+  const handleClick = useCallback(() => {
+    countRef.current += 1;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (countRef.current >= 3) {
+      setIsOpen(true);
+      countRef.current = 0;
+    } else {
+      timerRef.current = setTimeout(() => { countRef.current = 0; }, timeoutMs);
+    }
+  }, [timeoutMs]);
+
+  return [isOpen, handleClick, () => setIsOpen(false)];
+}
 
 // ==========================================
 // 数据库：22种核心物料 (ID与文件名对应)
 // ==========================================
 const INGREDIENTS = [
-  { id: 'ice', name: '冰块', color: 'bg-cyan-200' },
-  { id: 'gin', name: '金酒', color: 'bg-gray-100' },
-  { id: 'tonic', name: '汤力水', color: 'bg-blue-300' },
-  { id: 'lemon_slice', name: '柠檬片', color: 'bg-yellow-300' },
-  { id: 'stirrer', name: '搅拌棒', color: 'bg-amber-900' },
-  { id: 'shaker', name: '调酒壶', color: 'bg-slate-400' },
-  { id: 'lemon_juice', name: '柠檬汁', color: 'bg-yellow-200' },
-  { id: 'sugar', name: '砂糖', color: 'bg-white' },
-  { id: 'long_glass', name: '长饮杯', color: 'bg-sky-100' },
-  { id: 'rocks_glass', name: '古典杯', color: 'bg-stone-300' },
-  { id: 'champagne_glass', name: '香槟杯', color: 'bg-yellow-50' },
-  { id: 'soda', name: '苏打水', color: 'bg-cyan-400' },
-  { id: 'rum', name: '朗姆酒', color: 'bg-amber-700' },
-  { id: 'cola', name: '可乐', color: 'bg-stone-900' },
-  { id: 'vodka', name: '伏特加', color: 'bg-blue-100' },
-  { id: 'orange_juice', name: '鲜橙汁', color: 'bg-orange-500' },
-  { id: 'ginger_ale', name: '干姜水', color: 'bg-amber-300' },
-  { id: 'lemon_wedge', name: '柠檬角', color: 'bg-yellow-500' },
-  { id: 'coffee_liqueur', name: '咖啡酒', color: 'bg-neutral-800' },
-  { id: 'cherry', name: '樱桃', color: 'bg-red-600' },
-  { id: 'milk', name: '牛奶', color: 'bg-slate-50' },
-  { id: 'champagne', name: '香槟', color: 'bg-yellow-100' }
+  // --- 共享物料 (all) ---
+  { id: 'ice', name: '冰块', color: 'bg-cyan-200', category: 'all' },
+  { id: 'tonic', name: '汤力水', color: 'bg-blue-300', category: 'all' },
+  { id: 'lemon_slice', name: '柠檬片', color: 'bg-yellow-300', category: 'all' },
+  { id: 'stirrer', name: '搅拌棒', color: 'bg-amber-900', category: 'all' },
+  { id: 'lemon_juice', name: '柠檬汁', color: 'bg-yellow-200', category: 'all' },
+  { id: 'long_glass', name: '长饮杯', color: 'bg-sky-100', category: 'all' },
+  { id: 'soda', name: '苏打水', color: 'bg-cyan-400', category: 'all' },
+  { id: 'orange_juice', name: '鲜橙汁', color: 'bg-orange-500', category: 'all' },
+  { id: 'milk', name: '牛奶', color: 'bg-slate-50', category: 'all' },
+  // --- 酒廊专属 (bar) ---
+  { id: 'gin', name: '金酒', color: 'bg-gray-100', category: 'bar' },
+  { id: 'shaker', name: '调酒壶', color: 'bg-slate-400', category: 'bar' },
+  { id: 'sugar', name: '砂糖', color: 'bg-white', category: 'bar' },
+  { id: 'rocks_glass', name: '古典杯', color: 'bg-stone-300', category: 'bar' },
+  { id: 'champagne_glass', name: '香槟杯', color: 'bg-yellow-50', category: 'bar' },
+  { id: 'rum', name: '朗姆酒', color: 'bg-amber-700', category: 'bar' },
+  { id: 'cola', name: '可乐', color: 'bg-stone-900', category: 'bar' },
+  { id: 'vodka', name: '伏特加', color: 'bg-blue-100', category: 'bar' },
+  { id: 'ginger_ale', name: '干姜水', color: 'bg-amber-300', category: 'bar' },
+  { id: 'lemon_wedge', name: '柠檬角', color: 'bg-yellow-500', category: 'bar' },
+  { id: 'coffee_liqueur', name: '咖啡酒', color: 'bg-neutral-800', category: 'bar' },
+  { id: 'cherry', name: '樱桃', color: 'bg-red-600', category: 'bar' },
+  { id: 'champagne', name: '香槟', color: 'bg-yellow-100', category: 'bar' },
+  // --- 特调专属 (special) ---
+  { id: 'pineapple_juice', name: '菠萝汁', color: 'bg-yellow-400', category: 'special' },
+  { id: 'tomato_juice', name: '番茄汁', color: 'bg-red-500', category: 'special' },
+  { id: 'mint_leaf', name: '薄荷叶', color: 'bg-green-400', category: 'special' },
+  { id: 'sour_plum_juice', name: '酸梅汁', color: 'bg-purple-300', category: 'special' },
+  { id: 'puer_tea', name: '普洱茶', color: 'bg-amber-900', category: 'special' },
+  { id: 'red_date_goji', name: '红枣枸杞', color: 'bg-red-400', category: 'special' },
+  { id: 'coffee_pot', name: '咖啡', color: 'bg-amber-950', category: 'special' },
+  { id: 'mint_liqueur', name: '薄荷糖浆', color: 'bg-emerald-400', category: 'special' },
+  { id: 'sprite', name: '雪碧', color: 'bg-lime-200', category: 'special' },
+  { id: 'mineral_water', name: '矿泉水', color: 'bg-sky-200', category: 'special' },
+  { id: 'sparkling_water', name: '气泡水', color: 'bg-cyan-300', category: 'special' },
+  { id: 'passion_lemon', name: '百香柠柠', color: 'bg-orange-300', category: 'special' },
+  { id: 'salt', name: '盐', color: 'bg-white', category: 'special' },
+  { id: 'teapot', name: '茶壶', color: 'bg-stone-500', category: 'special' },
+  { id: 'paper_cup', name: '纸杯', color: 'bg-amber-100', category: 'special' },
+  { id: 'coffee_spoon', name: '咖啡勺', color: 'bg-gray-400', category: 'special' },
+  { id: 'mug', name: '马克杯', color: 'bg-stone-400', category: 'special' },
+  { id: 'teacup', name: '茶杯', color: 'bg-stone-200', category: 'special' },
 ];
 
 // ==========================================
 // 判定逻辑：补全英文名，保持载杯独立方案
 // ==========================================
 const MISSIONS = [
-  { id: 'm1', name: '金汤力', enName: 'Gin Tonic', variants: [{ glass: 'long_glass', seq: 'ice,gin,tonic,lemon_slice,stirrer' }], desc: '理智 +20, 疲劳 -50' },
-  { id: 'm2', name: '汤姆卡林', enName: 'Tom Collins', variants: [{ glass: 'long_glass', seq: 'shaker,ice,gin,lemon_juice,sugar,ice,soda,lemon_slice,stirrer' }], desc: '魅力 +15, 醉意 +5' },
-  { id: 'm3', name: '自由古巴', enName: 'Cuba Libra', variants: [{ glass: 'long_glass', seq: 'ice,rum,cola,lemon_slice,stirrer' }], desc: '热情奔放！移速 +30%' },
-  { id: 'm4', name: '螺丝钻', enName: 'Screwdriver', variants: [{ glass: 'long_glass', seq: 'ice,vodka,orange_juice,lemon_slice,stirrer' }, { glass: 'rocks_glass', seq: 'ice,vodka,orange_juice,lemon_slice' }], desc: '攻击力 +15, 准度 -10' },
-  { id: 'm5', name: '绝对干姜', enName: 'Absolute Ginger Ale', variants: [{ glass: 'long_glass', seq: 'ice,vodka,ginger_ale,lemon_wedge,stirrer' }], desc: '火抗 +50, 精神大振！' },
-  { id: 'm6', name: '绝对汤力', enName: 'Absolute Tonic', variants: [{ glass: 'long_glass', seq: 'ice,vodka,tonic,lemon_wedge,stirrer' }], desc: '隐蔽度 +20, 纯粹打击！' },
-  { id: 'm7', name: '黑俄罗斯', enName: 'Black Russian', variants: [{ glass: 'rocks_glass', seq: 'ice,vodka,coffee_liqueur,cherry' }], desc: '暗夜视力 +100, 危险警告' },
-  { id: 'm8', name: '白俄罗斯', enName: 'White Russian', variants: [{ glass: 'rocks_glass', seq: 'ice,vodka,coffee_liqueur,milk,cherry' }], desc: 'HP缓慢回复, 防御 +15' },
-  { id: 'm9', name: '含羞草', enName: 'Mimosa', variants: [{ glass: 'champagne_glass', seq: 'champagne,orange_juice' }], desc: '社交值 MAX, 幸运 +99' }
+  { id: 'm1', name: '金汤力', enName: 'Gin Tonic', category: 'bar', variants: [{ glass: 'long_glass', seq: 'ice,gin,tonic,lemon_slice,stirrer' }], desc: '理智 +20, 疲劳 -50' },
+  { id: 'm2', name: '汤姆卡林', enName: 'Tom Collins', category: 'bar', variants: [{ glass: 'long_glass', seq: 'shaker,ice,gin,lemon_juice,sugar,ice,soda,lemon_slice,stirrer' }], desc: '魅力 +15, 醉意 +5' },
+  { id: 'm3', name: '自由古巴', enName: 'Cuba Libra', category: 'bar', variants: [{ glass: 'long_glass', seq: 'ice,rum,cola,lemon_slice,stirrer' }], desc: '热情奔放！移速 +30%' },
+  { id: 'm4', name: '螺丝钻', enName: 'Screwdriver', category: 'bar', variants: [{ glass: 'long_glass', seq: 'ice,vodka,orange_juice,lemon_slice,stirrer' }, { glass: 'rocks_glass', seq: 'ice,vodka,orange_juice,lemon_slice' }], desc: '攻击力 +15, 准度 -10' },
+  { id: 'm5', name: '绝对干姜', enName: 'Absolute Ginger Ale', category: 'bar', variants: [{ glass: 'long_glass', seq: 'ice,vodka,ginger_ale,lemon_wedge,stirrer' }], desc: '火抗 +50, 精神大振！' },
+  { id: 'm6', name: '绝对汤力', enName: 'Absolute Tonic', category: 'bar', variants: [{ glass: 'long_glass', seq: 'ice,vodka,tonic,lemon_wedge,stirrer' }], desc: '隐蔽度 +20, 纯粹打击！' },
+  { id: 'm7', name: '黑俄罗斯', enName: 'Black Russian', category: 'bar', variants: [{ glass: 'rocks_glass', seq: 'ice,vodka,coffee_liqueur,cherry' }], desc: '暗夜视力 +100, 危险警告' },
+  { id: 'm8', name: '白俄罗斯', enName: 'White Russian', category: 'bar', variants: [{ glass: 'rocks_glass', seq: 'ice,vodka,coffee_liqueur,milk,cherry' }], desc: 'HP缓慢回复, 防御 +15' },
+  { id: 'm9', name: '含羞草', enName: 'Mimosa', category: 'bar', variants: [{ glass: 'champagne_glass', seq: 'champagne,orange_juice' }], desc: '社交值 MAX, 幸运 +99' },
+  // --- 客舱特调 (special) ---
+  { id: 's1', name: '日出东方', enName: 'Sunrise', category: 'special', variants: [{ glass: 'long_glass', seq: 'pineapple_juice,tomato_juice,stirrer' }], desc: '晨光熹微，活力焕发' },
+  { id: 's2', name: '明亮前橙', enName: 'Bright Orange', category: 'special', variants: [{ glass: 'long_glass', seq: 'lemon_juice,orange_juice,salt,tonic,mint_leaf,stirrer' }], desc: '维C满满，明亮心情' },
+  { id: 's3', name: '万家灯火', enName: 'Myriad Lights', category: 'special', variants: [{ glass: 'mug', seq: 'teapot,puer_tea,red_date_goji,red_date_goji' }, { glass: 'mug', seq: 'puer_tea,red_date_goji' }], desc: '温暖醇厚，万里归途' },
+  { id: 's4', name: '仲夏', enName: 'Midsummer', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sour_plum_juice,soda,mint_leaf,stirrer' }], desc: '清凉解暑，夏日特饮' },
+  { id: 's5', name: '柠夏', enName: 'Summer Lemon', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_leaf,mint_leaf,ice,mint_leaf,mint_leaf,lemon_slice,lemon_slice,ice,lemon_juice,soda,mint_leaf,stirrer' }], desc: '薄荷柠香，冰爽一夏' },
+  { id: 's6', name: '踏雪', enName: 'Snow Step', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,milk,coffee_pot,stirrer' }], desc: '奶咖交融，暖意融融' },
+  { id: 's7', name: '薄荷咖啡', enName: 'Mint Coffee', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_liqueur,ice,coffee_pot,mint_leaf,stirrer' }], desc: '清凉提神，双重享受' },
+  { id: 's8', name: '薄荷汽水', enName: 'Mint Soda', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sprite,mint_liqueur,mint_leaf,stirrer' }], desc: '气泡跳跃，薄荷清凉' },
+  { id: 's9', name: '薄荷牛奶', enName: 'Mint Milk', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_liqueur,milk,mint_leaf,stirrer' }], desc: '丝滑奶香，薄荷回甘' },
+  { id: 's10', name: '百香柠柠', enName: 'Passion Lemon', category: 'special', variants: [{ glass: 'long_glass', seq: 'passion_lemon,mineral_water,stirrer,ice' }], desc: '冻干果茶，酸甜可口' },
 ];
 
 const BRIEFING_TEXT = `=========================================
-[ 绝密简报：核心配方与载杯 ]
+[ 绝密简报：云端酒廊 · 核心配方 ]
 =========================================
 > 考核已锁定。请严格记忆制作方法、物料顺序与载杯。
 > 提醒：载杯置入不限顺序，但物料添加必须严格遵循操作流！
@@ -52,7 +107,7 @@ const BRIEFING_TEXT = `=========================================
 01. 金 汤 力: 长饮杯 | 冰块, 金酒, 汤力水, 柠檬片, 搅拌棒
 02. 汤姆卡林: 长饮杯 | 调酒壶, 冰块, 金酒, 柠檬汁, 砂糖, 冰块, 苏打水, 柠檬片, 搅拌棒
 03. 自由古巴: 长饮杯 | 冰块, 朗姆酒, 可乐, 柠檬片, 搅拌棒
-04. 螺 丝 钻: 
+04. 螺 丝 钻:
     - 方案A (长饮杯): 冰块, 伏特加, 橙汁, 柠檬片, 搅拌棒
     - 方案B (古典杯): 冰块, 伏特加, 橙汁, 柠檬片
 05. 绝对干姜: 长饮杯 | 冰块, 伏特加, 干姜水, 柠檬角, 搅拌棒
@@ -60,6 +115,23 @@ const BRIEFING_TEXT = `=========================================
 07. 黑俄罗斯: 古典杯 | 冰块, 伏特加, 咖啡酒, 樱桃
 08. 白俄罗斯: 古典杯 | 冰块, 伏特加, 咖啡酒, 牛奶, 樱桃
 09. 含 羞 草: 香槟杯 | 香槟, 橙汁
+
+=========================================
+[ 绝密简报：客舱特调 · 核心配方 ]
+=========================================
+
+10. 日出东方: 长饮杯 | 菠萝汁, 番茄汁, 搅拌棒
+11. 明亮前橙: 长饮杯 | 柠檬汁, 鲜橙汁, 盐, 汤力水, 薄荷叶, 搅拌棒
+12. 万家灯火:
+    - 方案A (茶壶冲泡): 马克杯 | 茶壶, 普洱茶, 红枣枸杞, 红枣枸杞
+    - 方案B (马克杯冲泡): 马克杯 | 普洱茶, 红枣枸杞
+13. 仲    夏: 长饮杯 | 冰块, 酸梅汁, 苏打水, 薄荷叶, 搅拌棒
+14. 柠    夏: 长饮杯 | 薄荷叶×2, 冰块, 薄荷叶×2, 柠檬片×2, 冰块, 柠檬汁, 苏打水, 薄荷叶, 搅拌棒
+15. 踏    雪: 长饮杯 | 冰块, 牛奶, 咖啡, 搅拌棒
+16. 薄荷咖啡: 长饮杯 | 薄荷糖浆, 冰块, 咖啡, 薄荷叶, 搅拌棒
+17. 薄荷汽水: 长饮杯 | 冰块, 雪碧, 薄荷糖浆, 薄荷叶, 搅拌棒
+18. 薄荷牛奶: 长饮杯 | 薄荷糖浆, 牛奶, 薄荷叶, 搅拌棒
+19. 百香柠柠: 长饮杯 | 百香柠柠, 矿泉水, 搅拌棒, 冰块
 =========================================`;
 
 // ==========================================
@@ -73,7 +145,7 @@ function BriefingModal({ onClose }) {
           <span className="text-[#e5c07b] font-black tracking-widest text-xs md:text-sm">[ SYSTEM ARCHIVE / 系统档案 ]</span>
           <button onClick={onClose} className="text-[#e06c75] font-black hover:text-white transition-colors shrink-0 whitespace-nowrap">[ X ] CLOSE</button>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[70vh] text-[#abb2bf] whitespace-pre-wrap font-bold leading-relaxed text-sm md:text-base custom-scrollbar text-left">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[70vh] text-[#abb2bf] whitespace-pre-wrap font-bold leading-relaxed text-xs sm:text-sm md:text-base custom-scrollbar text-left">
           <span className="text-[#d19a66] font-black">[ 绝密简报：核心配方 ]</span>
           {BRIEFING_TEXT.replace(/\[ 绝密简报：核心配方与载杯 \]/, '')}
         </div>
@@ -165,27 +237,27 @@ ESTABLISHING SECURE UPLINK... DONE
   };
 
   return (
-    <div className="w-full max-w-4xl bg-[#131313] p-2 md:p-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative z-10 border-b-8 border-r-8 border-black flex flex-col h-[90vh]">
-      <div className="bg-[#0a0a0a] w-full flex-grow rounded-2xl p-4 md:p-8 shadow-[inset_0_0_80px_rgba(0,0,0,1)] overflow-hidden relative border-4 border-gray-800 flex flex-col">
+    <div className="w-full max-w-4xl bg-[#131313] p-2 sm:p-4 md:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative z-10 border-b-8 border-r-8 border-black flex flex-col h-[90vh]">
+      <div className="bg-[#0a0a0a] w-full flex-grow rounded-2xl p-2 sm:p-4 md:p-6 lg:p-8 shadow-[inset_0_0_80px_rgba(0,0,0,1)] overflow-hidden relative border-4 border-gray-800 flex flex-col">
         <div className="absolute inset-0 pointer-events-none opacity-30 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px] z-40"></div>
-        <div className="relative z-20 text-[#abb2bf] whitespace-pre-wrap break-words text-sm md:text-xl font-bold leading-relaxed tracking-wide flex-grow overflow-y-auto pr-2 custom-scrollbar text-left">
+        <div className="relative z-20 text-[#abb2bf] whitespace-pre-wrap break-words text-xs sm:text-sm md:text-base lg:text-xl font-bold leading-relaxed tracking-wide flex-grow overflow-y-auto pr-2 custom-scrollbar text-left">
           <span dangerouslySetInnerHTML={formatText(terminalHistory)} />
           <span dangerouslySetInnerHTML={formatText(typingText.slice(0, typingIndex))} />
           
           {step === 1 && (
-            <div className="mt-6 border-2 border-gray-700 p-4 md:p-6 max-w-md relative bg-gray-900/50">
+            <div className="mt-6 border-2 border-gray-700 p-3 sm:p-4 md:p-6 max-w-full sm:max-w-md relative bg-gray-900/50">
                <div className="absolute -top-4 left-4 bg-gray-800 px-2 text-[#e5c07b] font-extrabold tracking-widest text-xs border-2 border-gray-700">[ ACADEMY DATA ]</div>
                <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4 text-left">
                 <div className="flex items-center border-b border-gray-700/50 pb-1">
-                  <span className="w-20 md:w-28 text-[#56b6c2] text-sm">姓　　名:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
+                  <span className="w-16 sm:w-20 md:w-28 text-[#56b6c2] text-xs sm:text-sm">姓　　名:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
                   <input required value={formData.name} onChange={(e)=>setFormData({...formData, name: e.target.value})} autoFocus className="bg-transparent border-none outline-none text-[#98c379] flex-grow uppercase font-extrabold" />
                 </div>
                 <div className="flex items-center border-b border-gray-700/50 pb-1">
-                  <span className="w-20 md:w-28 text-[#56b6c2] text-sm">员工编号:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
+                  <span className="w-16 sm:w-20 md:w-28 text-[#56b6c2] text-xs sm:text-sm">员工编号:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
                   <input required value={formData.empId} onChange={(e)=>setFormData({...formData, empId: e.target.value})} className="bg-transparent border-none outline-none text-[#98c379] flex-grow uppercase font-extrabold" />
                 </div>
                 <div className="flex items-center border-b border-gray-700/50 pb-1">
-                  <span className="w-20 md:w-28 text-[#56b6c2] text-sm">所属部门:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
+                  <span className="w-16 sm:w-20 md:w-28 text-[#56b6c2] text-xs sm:text-sm">所属部门:</span><span className="mr-2 text-[#c678dd]">{">"}</span>
                   <input required value={formData.dept} onChange={(e)=>setFormData({...formData, dept: e.target.value})} className="bg-transparent border-none outline-none text-[#98c379] flex-grow uppercase font-extrabold" />
                 </div>
                 <button type="submit" className="mt-4 px-4 py-2 border-2 border-[#e5c07b] text-[#e5c07b] font-bold hover:bg-[#e5c07b] hover:text-black transition-all shadow-[4px_4px_0_#9a8153] active:translate-y-1 active:shadow-none animate-pulse">[ 登 录 SYSTEM ]</button>
@@ -214,14 +286,14 @@ ESTABLISHING SECURE UPLINK... DONE
       </div>
 
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-gray-500 font-extrabold tracking-widest text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[9px]">云端特勤局</span></div>
+        <div className="text-gray-500 font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[8px] sm:text-[9px]">云端特勤局</span></div>
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2">
+          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse`}></div>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -232,41 +304,58 @@ ESTABLISHING SECURE UPLINK... DONE
 // ==========================================
 // 组件：Node 2 任务大厅 (加入中英双语版式)
 // ==========================================
-function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, missionResults, flippedMissions, setFlippedMissions, onSecretClick }) {
-  const activeIndex = missions.findIndex(m => missionResults[m.id] !== 'PASS');
-  const finalActiveIndex = activeIndex === -1 ? missions.length : activeIndex;
+const CATEGORIES = [
+  { id: 'bar', label: '🍸 云端酒廊', count: 9 },
+  { id: 'special', label: '🍵 客舱特调', count: 10 },
+];
+
+function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, missionResults, flippedMissions, setFlippedMissions, category, setCategory, onSecretClick }) {
+  const filteredMissions = missions.filter(m => m.category === category);
+  const activeIndex = filteredMissions.findIndex(m => missionResults[m.id] !== 'PASS');
+  const finalActiveIndex = activeIndex === -1 ? filteredMissions.length : activeIndex;
 
   return (
-    <div className="w-full max-w-5xl bg-[#131313] p-2 md:p-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative z-10 border-b-8 border-r-8 border-black flex flex-col h-[90vh]">
-      <div className="bg-[#0a0a0a] w-full flex-grow rounded-2xl p-3 md:p-6 shadow-[inset_0_0_80px_rgba(0,0,0,1)] overflow-hidden relative border-4 border-gray-800 flex flex-col">
+    <div className="w-full max-w-5xl bg-[#131313] p-2 sm:p-4 md:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative z-10 border-b-8 border-r-8 border-black flex flex-col h-[90vh]">
+      <div className="bg-[#0a0a0a] w-full flex-grow rounded-2xl p-2 sm:p-3 md:p-6 shadow-[inset_0_0_80px_rgba(0,0,0,1)] overflow-hidden relative border-4 border-gray-800 flex flex-col">
         <div className="absolute inset-0 pointer-events-none opacity-30 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px] z-40"></div>
         <div className="relative z-20 mb-3 md:mb-4 border-b-2 border-[#3e4451] pb-2 text-left">
-          <h1 className="text-[#56b6c2] text-lg md:text-2xl font-black tracking-widest uppercase">[ DATABASE / 任务大厅 ]</h1>
+          <h1 className="text-[#56b6c2] text-base sm:text-lg md:text-2xl font-black tracking-widest uppercase">[ DATABASE / 任务大厅 ]</h1>
+          <div className="flex gap-2 mt-2">
+            {CATEGORIES.map(cat => (
+              <button key={cat.id} onClick={() => setCategory(cat.id)}
+                className={`px-3 py-1.5 text-xs md:text-sm font-black tracking-widest border-2 rounded transition-all ${
+                  category === cat.id
+                    ? 'border-[#e5c07b] text-[#e5c07b] bg-[#e5c07b]/10 shadow-[2px_2px_0_#9a8153]'
+                    : 'border-gray-600 text-gray-500 hover:border-gray-400 hover:text-gray-300'
+                }`}
+              >{cat.label} <span className="text-[10px] opacity-60">/ {cat.count}</span></button>
+            ))}
+          </div>
         </div>
-        <div className="relative z-20 flex-1 grid grid-cols-3 gap-2 md:gap-4 overflow-hidden">
-          {missions.map((mission, index) => {
+        <div className="relative z-20 flex-1 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-hidden">
+          {filteredMissions.map((mission, index) => {
             const isFlipped = flippedMissions.includes(mission.id);
-            const status = missionResults[mission.id]; 
-            const isLocked = index > finalActiveIndex; 
+            const status = missionResults[mission.id];
+            const isLocked = index > finalActiveIndex;
             return (
               <div key={mission.id} onClick={() => !isLocked && (isFlipped ? onSelectMission(mission) : setFlippedMissions([...flippedMissions, mission.id]))} className={`perspective w-full h-full ${isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer group'}`}>
                 <div className={`w-full h-full relative preserve-3d transition-transform duration-500 ease-out ${isFlipped ? 'rotate-y-180' : ''}`}>
-                  
+
                   {/* 未翻开：LOCKED 或 CLASSIFIED */}
-                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#2c313c] to-[#1e222a] rounded-xl md:rounded-[2rem] border border-[#3e4451]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center">
-                    <div className="w-8 h-8 md:w-14 md:h-14 rounded-full border-[2px] md:border-[3px] border-[#56b6c2]/40 flex items-center justify-center mb-1 bg-[#131313]/50 shadow-inner">
-                      <span className="text-[#56b6c2]/60 text-lg md:text-2xl font-black">{isLocked ? 'X' : '?'}</span>
+                  <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#2c313c] to-[#1e222a] rounded-xl sm:rounded-[2rem] border border-[#3e4451]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 rounded-full border-[2px] md:border-[3px] border-[#56b6c2]/40 flex items-center justify-center mb-1 bg-[#131313]/50 shadow-inner">
+                      <span className="text-[#56b6c2]/60 text-base sm:text-lg md:text-2xl font-black">{isLocked ? 'X' : '?'}</span>
                     </div>
-                    <div className="text-gray-500 text-[9px] md:text-xs font-bold tracking-widest uppercase">{isLocked ? 'LOCKED' : 'CLASSIFIED'}</div>
+                    <div className="text-gray-500 text-[8px] sm:text-[9px] md:text-xs font-bold tracking-widest uppercase">{isLocked ? 'LOCKED' : 'CLASSIFIED'}</div>
                   </div>
-                  
+
                   {/* 已翻开：中英双语版式 */}
-                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#1e222a] rounded-xl md:rounded-[2rem] border-2 border-[#56b6c2]/40 shadow-inner flex flex-col items-center justify-center p-2">
-                    <span className="text-[#e5c07b] font-black text-sm md:text-2xl text-center leading-tight break-words flex flex-col gap-0.5">
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-[#1e222a] rounded-xl sm:rounded-[2rem] border-2 border-[#56b6c2]/40 shadow-inner flex flex-col items-center justify-center p-1 sm:p-2">
+                    <span className="text-[#e5c07b] font-black text-xs sm:text-sm md:text-xl lg:text-2xl text-center leading-tight break-words flex flex-col gap-0.5">
                        {mission.name}
-                       <span className="text-[8px] md:text-xs text-gray-500 font-bold uppercase tracking-widest leading-none">{mission.enName}</span>
+                       <span className="text-[7px] sm:text-[8px] md:text-xs text-gray-500 font-bold uppercase tracking-widest leading-none">{mission.enName}</span>
                     </span>
-                    {status && <div className={`absolute bottom-2 right-2 border-2 rounded px-1 py-0.5 font-black text-[8px] md:text-xs -rotate-12 ${status === 'PASS' ? 'text-[#388e3c] border-[#388e3c]' : 'text-[#d32f2f] border-[#d32f2f]'}`}>{status}</div>}
+                    {status && <div className={`absolute bottom-2 right-2 border-2 rounded px-1 py-0.5 font-black text-[7px] sm:text-[8px] md:text-xs -rotate-12 ${status === 'PASS' ? 'text-[#388e3c] border-[#388e3c]' : 'text-[#d32f2f] border-[#d32f2f]'}`}>{status}</div>}
                   </div>
 
                 </div>
@@ -276,14 +365,14 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
         </div>
       </div>
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-gray-500 font-extrabold tracking-widest text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[9px]">云端特勤局</span></div>
+        <div className="text-gray-500 font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[8px] sm:text-[9px]">云端特勤局</span></div>
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2">
+          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse`}></div>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -294,14 +383,15 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
 // ==========================================
 // 组件：Node 3 操作台
 // ==========================================
-function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, onSecretClick }) {
+function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, category, onSecretClick }) {
   const activeMission = currentMission || { id: 'dev', name: 'DEV', variants: [{glass:'long_glass',seq:'ice'}] };
   const [glassContents, setGlassContents] = useState([]);
   const [isShaking, setIsShaking] = useState(false);
   const [resultMsg, setResultMsg] = useState(`特工准备就绪。\n调制【${activeMission.name}】`);
   const [isMixed, setIsMixed] = useState(false);
-  const [stampStatus, setStampStatus] = useState(null); 
+  const [stampStatus, setStampStatus] = useState(null);
   const MAX_CAPACITY = 12;
+  const filteredIngredients = INGREDIENTS.filter(i => i.category === 'all' || i.category === category);
 
   const handleAddIngredient = (ingredient) => {
     if (isMixed) return; 
@@ -318,7 +408,7 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
     setIsShaking(true); setResultMsg('系统正在比对配方特征序列...\n[ PROCESSING ]');
     setTimeout(() => {
       setIsShaking(false); setIsMixed(true);
-      const glassTypes = ['long_glass', 'rocks_glass', 'champagne_glass'];
+      const glassTypes = ['long_glass', 'rocks_glass', 'champagne_glass', 'mug', 'teacup'];
       const userGlasses = [...new Set(glassContents.filter(i => glassTypes.includes(i.id)).map(i => i.id))];
       const userSeq = glassContents.filter(i => !glassTypes.includes(i.id)).map(i => i.id).join(',');
       
@@ -345,11 +435,11 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
   }, []);
 
   return (
-    <div className="w-full max-w-5xl bg-[#131313] border-b-8 border-r-8 border-black rounded-[2rem] p-3 md:p-8 flex flex-col relative shadow-[0_20px_50px_rgba(0,0,0,0.9)] h-[90vh] md:h-[94vh] overflow-hidden text-left">
-      <div className="absolute top-0 left-0 w-full h-10 md:h-12 bg-[#1e222a] border-b-4 border-[#0a0a0a] rounded-t-[2rem] flex items-center px-4 md:px-8 justify-between -mt-1 z-50">
+    <div className="w-full max-w-5xl bg-[#131313] border-b-8 border-r-8 border-black rounded-[1.5rem] sm:rounded-[2rem] p-2 sm:p-3 md:p-6 lg:p-8 flex flex-col relative shadow-[0_20px_50px_rgba(0,0,0,0.9)] h-[90vh] md:h-[94vh] overflow-hidden text-left">
+      <div className="absolute top-0 left-0 w-full h-8 sm:h-10 md:h-12 bg-[#1e222a] border-b-4 border-[#0a0a0a] rounded-t-[2rem] flex items-center px-2 sm:px-4 md:px-8 justify-between -mt-1 z-50">
         <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={onBack} className="text-[#e06c75] font-black hover:text-white transition-colors active:scale-95 text-sm md:text-base">[ &lt; BACK ]</button>
-          <span className="text-[#56b6c2] font-bold tracking-widest text-[10px] md:text-sm uppercase truncate">TARGET: {activeMission.name}</span>
+          <button onClick={onBack} className="text-[#e06c75] font-black hover:text-white transition-colors active:scale-95 text-xs sm:text-sm md:text-base">[ &lt; BACK ]</button>
+          <span className="text-[#56b6c2] font-bold tracking-widest text-[8px] sm:text-[10px] md:text-sm uppercase truncate">TARGET: {activeMission.name}</span>
         </div>
         <div onClick={onSecretClick} className="flex gap-2 shrink-0 cursor-default">
           <div className="w-3 h-3 md:w-4 md:h-4 bg-gray-500 border border-black rounded-full"></div>
@@ -362,7 +452,7 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
         {stampStatus && (
           <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
             <div className={`stamp border-[8px] rounded-xl px-8 py-4 font-black tracking-widest opacity-90 backdrop-blur-md bg-black/20 ${stampStatus === 'PASS' ? 'text-[#388e3c] border-[#388e3c]' : 'text-[#d32f2f] border-[#d32f2f]'}`}>
-              <span className="text-6xl md:text-8xl mix-blend-normal uppercase">{stampStatus}</span>
+              <span className="text-4xl sm:text-6xl md:text-8xl mix-blend-normal uppercase">{stampStatus}</span>
             </div>
           </div>
         )}
@@ -370,9 +460,9 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
         <div className="w-full md:w-1/3 flex flex-col items-center justify-start h-[35%] md:h-auto shrink-0">
           <div className="w-full bg-[#0a0a0a] border-4 border-[#3e4451] rounded-lg mb-4 p-2 shadow-[inset_0_0_20px_rgba(0,0,0,1)] relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]"></div>
-            <p className="text-[#98c379] whitespace-pre-line leading-snug h-10 md:h-16 flex items-center justify-center text-center font-bold text-[10px] md:text-base">{resultMsg}</p>
+            <p className="text-[#98c379] whitespace-pre-line leading-snug h-8 sm:h-10 md:h-16 flex items-center justify-center text-center font-bold text-[9px] sm:text-xs md:text-sm lg:text-base">{resultMsg}</p>
           </div>
-          <div className={`relative w-24 h-32 md:w-36 md:h-64 border-x-[6px] md:border-x-8 border-b-[6px] md:border-b-8 border-[#3e4451] rounded-b-xl flex flex-col-reverse bg-white/5 transition-transform ${isShaking ? 'animate-pixel-shake' : ''}`}>
+          <div className={`relative w-20 sm:w-24 md:w-36 h-28 sm:h-32 md:h-64 border-x-[6px] md:border-x-8 border-b-[6px] md:border-b-8 border-[#3e4451] rounded-b-xl flex flex-col-reverse bg-white/5 transition-transform ${isShaking ? 'animate-pixel-shake' : ''}`}>
             {stackedContents.map((ing, index) => (
               <div key={index} style={{ flexGrow: ing.count }} className={`w-full ${ing.color} border-t-2 border-black/30 flex items-center justify-center relative overflow-hidden transition-all`}>
                 <img src={`/assets/${ing.id}.png`} className="absolute w-[80%] h-[80%] object-contain z-10" style={{ imageRendering: 'pixelated' }} alt={ing.name} onError={(e)=>e.target.style.display='none'} />
@@ -388,16 +478,16 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
           <div className="bg-[#1e222a] border-4 border-[#3e4451] p-2 md:p-4 flex-grow flex flex-col overflow-hidden shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] rounded-lg text-left">
             <h2 className="text-[#56b6c2] font-black mb-2 border-b-2 border-[#3e4451] pb-1 uppercase text-xs md:text-base">[ REPOSITORY / 物料 ]</h2>
             <div className="grid grid-cols-4 md:grid-cols-4 gap-1.5 md:gap-2 overflow-y-auto custom-scrollbar h-full">
-              {INGREDIENTS.map((item) => (
+              {filteredIngredients.map((item) => (
                 <button key={item.id} onClick={() => handleAddIngredient(item)} disabled={glassContents.length >= MAX_CAPACITY || isMixed}
-                  className={`relative overflow-hidden ${item.color} border-[1.5px] md:border-2 border-black h-14 md:h-16 w-full p-1 text-[9px] md:text-[11px] font-bold text-center disabled:opacity-30 shadow-[2px_2px_0_0_#000] transition-all hover:brightness-110 active:translate-x-px flex flex-col items-center justify-center gap-0.5`}>
-                  <img src={`/assets/${item.id}.png`} alt={item.name} className="h-5 md:h-7 object-contain drop-shadow-md z-10" style={{ imageRendering: 'pixelated' }} onError={(e)=>e.target.style.display='none'} />
+                  className={`relative overflow-hidden ${item.color} border-[1.5px] md:border-2 border-black h-12 sm:h-14 md:h-16 w-full p-1 text-[7px] sm:text-[9px] md:text-[11px] font-bold text-center disabled:opacity-30 shadow-[2px_2px_0_0_#000] transition-all hover:brightness-110 active:translate-x-px flex flex-col items-center justify-center gap-0.5`}>
+                  <img src={`/assets/${item.id}.png`} alt={item.name} className="h-4 sm:h-5 md:h-7 object-contain drop-shadow-md z-10" style={{ imageRendering: 'pixelated' }} onError={(e)=>e.target.style.display='none'} />
                   <span className="relative z-10 text-white font-black drop-shadow-[0_1px_1px_#000] leading-none uppercase">{item.name}</span>
                   <div className="absolute inset-0 bg-black/20 mix-blend-multiply"></div>
                 </button>
               ))}
-              {Array.from({ length: 24 - INGREDIENTS.length }).map((_, i) => (
-                <div key={i} className="bg-[#1e222a] border-[1.5px] md:border-2 border-[#131313] h-14 md:h-16 opacity-30 flex flex-col items-center justify-center gap-0.5">
+              {Array.from({ length: Math.max(0, 24 - filteredIngredients.length) }).map((_, i) => (
+                <div key={i} className="bg-[#1e222a] border-[1.5px] md:border-2 border-[#131313] h-12 sm:h-14 md:h-16 opacity-30 flex flex-col items-center justify-center gap-0.5">
                    <div className="h-4 w-6 bg-black/20 rounded-sm"></div>
                    <div className="h-2 w-8 bg-black/20 rounded-sm"></div>
                 </div>
@@ -406,8 +496,8 @@ function Workspace({ agentData, currentMission, onBack, onMissionComplete, isAud
           </div>
           <div className="flex flex-col gap-2 shrink-0">
             <div className="flex gap-2 md:gap-4">
-              <button onClick={handleShake} disabled={isShaking || isMixed || glassContents.length === 0} className="flex-1 bg-[#e06c75] text-white border-2 md:border-4 border-black py-2 md:py-4 font-black text-sm md:text-xl rounded-lg shadow-[3px_3px_0_0_#8c383e] active:translate-x-px">MIX / 混合</button>
-              <button onClick={()=>{setGlassContents([]);setIsMixed(false);setStampStatus(null);setResultMsg('已清空。')}} disabled={isShaking} className="flex-1 bg-[#e5c07b] text-black border-2 md:border-4 border-black py-2 md:py-4 font-black text-sm md:text-xl rounded-lg shadow-[3px_3px_0_0_#9a8153] active:translate-x-px">TRASH / 清理</button>
+              <button onClick={handleShake} disabled={isShaking || isMixed || glassContents.length === 0} className="flex-1 bg-[#e06c75] text-white border-2 md:border-4 border-black py-2 sm:py-3 md:py-4 font-black text-xs sm:text-base md:text-xl rounded-lg shadow-[3px_3px_0_0_#8c383e] active:translate-x-px">MIX / 混合</button>
+              <button onClick={()=>{setGlassContents([]);setIsMixed(false);setStampStatus(null);setResultMsg('已清空。')}} disabled={isShaking} className="flex-1 bg-[#e5c07b] text-black border-2 md:border-4 border-black py-2 sm:py-3 md:py-4 font-black text-xs sm:text-base md:text-xl rounded-lg shadow-[3px_3px_0_0_#9a8153] active:translate-x-px">TRASH / 清理</button>
             </div>
             <div className="flex justify-end gap-2">
               <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
@@ -430,22 +520,22 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
   let boxBorder = failCount === 0 ? 'border-[#d946ef] shadow-[0_0_15px_rgba(217,70,239,0.4)]' : (failCount <= 3 ? 'border-[#98c379] shadow-[0_0_15px_rgba(152,195,121,0.4)]' : 'border-[#56b6c2] shadow-[0_0_15px_rgba(86,182,194,0.4)]');
 
   return (
-    <div className="w-full max-w-2xl bg-[#1a1d24] p-8 md:p-12 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-[#e5c07b] flex flex-col items-center relative z-10 animate-cert-pop my-auto">
-      
+    <div className="w-full max-w-2xl bg-[#1a1d24] p-6 sm:p-8 md:p-12 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-[#e5c07b] flex flex-col items-center relative z-10 animate-cert-pop my-auto">
+
       {/* 还原截图中的超大绿色钢印水印 */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-0">
-        <div className="border-[6px] border-[#98c379] rounded-full w-64 h-64 md:w-80 md:h-80 flex flex-col items-center justify-center -rotate-12">
-            <span className="text-[#98c379] font-black text-3xl md:text-5xl tracking-widest">OFFICIAL</span>
-            <span className="text-[#98c379] font-black text-4xl md:text-6xl tracking-widest mt-1 border-t-4 border-[#98c379] pt-1">PASSED</span>
+        <div className="border-[6px] border-[#98c379] rounded-full w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 flex flex-col items-center justify-center -rotate-12">
+            <span className="text-[#98c379] font-black text-2xl sm:text-3xl md:text-5xl tracking-widest">OFFICIAL</span>
+            <span className="text-[#98c379] font-black text-3xl sm:text-4xl md:text-6xl tracking-widest mt-1 border-t-4 border-[#98c379] pt-1">PASSED</span>
         </div>
       </div>
 
-      <div onClick={onSecretClick} className="text-4xl md:text-5xl mb-4 z-10 cursor-default">🏅</div>
-      <h1 className="text-[#e5c07b] text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1">CERTIFICATE</h1>
+      <div onClick={onSecretClick} className="absolute top-4 right-4 text-4xl md:text-5xl z-10 cursor-default">🏅</div>
+      <h1 className="text-[#e5c07b] text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1">CERTIFICATE</h1>
       <h2 className="text-gray-500 text-xs md:text-sm font-bold tracking-widest border-b border-gray-600 pb-4 mb-8 w-full max-w-sm text-center z-10">CLOUD SECRET AGENT ACADEMY</h2>
       
       <p className="text-[#abb2bf] text-sm md:text-base font-bold leading-loose text-center mb-8 z-10">
-        经系统核准，特工 <span className="text-[#e5c07b] font-black text-lg md:text-xl border-b border-dashed border-[#e5c07b] px-1">{agentData.name}</span><br/>
+        经系统核准，特工 <span className="text-[#e5c07b] font-black text-base sm:text-lg md:text-xl border-b border-dashed border-[#e5c07b] px-1">{agentData.name}</span><br/>
         ( ID: {agentData.empId} )<br/>
         <br/>
         已完全掌握所有机密特调配方，<br/>
@@ -455,7 +545,7 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
       <div className="flex flex-col items-center z-10 mb-8 w-full">
          <span className="text-gray-500 text-[10px] md:text-xs tracking-widest mb-3 uppercase">SYSTEM RATING / 系统评级</span>
          <div className={`px-10 py-3 border-2 ${boxBorder} bg-black/40 backdrop-blur-sm mb-4`}>
-            <span className={`${color} font-black text-2xl md:text-4xl tracking-widest drop-shadow-[0_0_10px_currentColor]`}>{label}</span>
+            <span className={`${color} font-black text-xl sm:text-2xl md:text-4xl tracking-widest drop-shadow-[0_0_10px_currentColor]`}>{label}</span>
          </div>
          <div className="text-gray-400 text-[10px] md:text-xs font-normal">
             特工展现了完美的肌肉记忆，表现卓越。（错误记录: {failCount} 次）
@@ -483,7 +573,9 @@ export default function App() {
   const [missionResults, setMissionResults] = useState({}); 
   const [flippedMissions, setFlippedMissions] = useState([]);
   const [failCount, setFailCount] = useState(0);
-  const [isDevOpen, setIsDevOpen] = useState(false);
+  const [isDevOpen, handleSecretClick, closeDev] = useTripleClick();
+  const [agentList, setAgentList] = useState([]);
+  const [category, setCategory] = useState('bar');
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -502,7 +594,16 @@ export default function App() {
     if (sFlip) setFlippedMissions(JSON.parse(sFlip));
     if (sFail) setFailCount(parseInt(sFail, 10));
     if (sShuf) {
-      setShuffledMissions(JSON.parse(sShuf));
+      const parsed = JSON.parse(sShuf);
+      // 兼容旧版数据：无 category 字段则视为过期，自动刷新
+      if (parsed.length > 0 && !parsed[0].category) {
+        localStorage.removeItem('shuffledMissions');
+        const rnd = [...MISSIONS].sort(()=>Math.random()-0.5);
+        setShuffledMissions(rnd);
+        localStorage.setItem('shuffledMissions', JSON.stringify(rnd));
+      } else {
+        setShuffledMissions(parsed);
+      }
     } else {
       const rnd = [...MISSIONS].sort(()=>Math.random()-0.5);
       setShuffledMissions(rnd);
@@ -523,7 +624,7 @@ export default function App() {
       localStorage.setItem('missionResults', JSON.stringify(missionResults));
       localStorage.setItem('flippedMissions', JSON.stringify(flippedMissions));
       localStorage.setItem('failCount', failCount.toString());
-      if (Object.values(missionResults).filter(r => r === 'PASS').length === 9) {
+      if (Object.values(missionResults).filter(r => r === 'PASS').length === 19) {
         if (currentView !== 'graduation') setTimeout(() => setCurrentView('graduation'), 1000);
       }
     }
@@ -532,7 +633,7 @@ export default function App() {
   if (!isLoaded) return <div className="min-h-screen bg-[#1e222a]" />;
 
   return (
-    <div className="w-full min-h-screen bg-[#1e222a] flex items-center justify-center p-2 md:p-4 custom-terminal-font selection:bg-[#3e4451] selection:text-white relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[#1e222a] flex items-center justify-center p-1 sm:p-2 lg:p-4 custom-terminal-font selection:bg-[#3e4451] selection:text-white relative overflow-hidden">
       <style dangerouslySetInnerHTML={{__html: `
         /* 彻底覆盖 Vite 默认的 #root 宽度限制和白色背景 */
         html, body, #root { margin: 0; padding: 0; width: 100%; min-height: 100vh; background-color: #1e222a; max-width: none !important; }
@@ -552,22 +653,32 @@ export default function App() {
       
       {showBriefing && <BriefingModal onClose={() => setShowBriefing(false)} />}
       
-      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={() => setIsDevOpen(true)} />}
-      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={() => setIsDevOpen(true)} />}
-      {currentView === 'workspace' && <Workspace agentData={agentData} currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={() => setIsDevOpen(true)} />}
-      {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={()=>setIsDevOpen(true)} />}
+      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} />}
+      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} />}
+      {currentView === 'workspace' && <Workspace agentData={agentData} currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} />}
+      {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={handleSecretClick} />}
 
       {isDevOpen && (
-        <div className="fixed bottom-10 right-4 z-[999] bg-black border border-red-500 p-3 rounded text-[10px] text-white font-mono shadow-2xl flex flex-col gap-2">
+        <div className="fixed bottom-10 right-4 z-[999] bg-black border border-red-500 p-3 rounded text-[10px] text-white font-mono shadow-2xl flex flex-col gap-2 max-h-[80vh] overflow-auto">
             <div className="flex justify-between border-b border-red-900 pb-1 mb-1">
                <span className="text-red-500">DEBUG CONSOLE</span>
-               <button onClick={()=>setIsDevOpen(false)} className="bg-red-900 px-1 rounded hover:bg-red-500">X</button>
+               <button onClick={closeDev} className="bg-red-900 px-1 rounded hover:bg-red-500">X</button>
             </div>
             <button onClick={()=>setCurrentView('terminal')} className="text-left hover:bg-white/10">&gt; NODE 1 (LOGIN)</button>
             <button onClick={()=>setCurrentView('mission_hall')} className="text-left hover:bg-white/10">&gt; NODE 2 (HALL)</button>
             <button onClick={()=>setCurrentView('workspace')} className="text-left hover:bg-white/10">&gt; NODE 3 (WORKSPACE)</button>
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
+            <div className="border-t border-red-900 mt-1 pt-1">
+              <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents`);const d=await r.json();setAgentList(d)}catch(e){alert('Backend unreachable')}}} className="text-left text-[#56b6c2] hover:bg-white/10 w-full">&gt; FETCH AGENT DATA</button>
+              {agentList.length > 0 && (
+                <div className="mt-2 max-h-40 overflow-auto text-[8px]">
+                  {agentList.map((a,i)=>(
+                    <div key={i} className="border-b border-gray-800 py-1">{a.name} | {a.emp_id} | {a.dept} | {a.created_at}</div>
+                  ))}
+                </div>
+              )}
+            </div>
         </div>
       )}
     </div>
