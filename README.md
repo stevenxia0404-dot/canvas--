@@ -1,16 +1,40 @@
-# React + Vite
+# Canvas Academy / 画布学院
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+特工调酒训练系统 — 基于序列配方的交互式饮品调制 PWA。
 
-Currently, two official plugins are available:
+## 技术栈
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| 层 | 技术 |
+|---|---|
+| 前端 | React 19 + Vite + Tailwind 4 |
+| 后端 | Cloudflare Worker + D1 |
+| 部署 | Cloudflare Pages |
+| PWA | Service Worker + Manifest (可安装全屏) |
 
-## React Compiler
+## 本地开发
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Worker 本地调试：
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npx wrangler dev worker/index.js
+```
+
+## 项目结构
+
+```
+src/App.jsx        # 单文件 SPA (终端→任务大厅→操作台→毕业)
+public/assets/     # 饮品物料图标 (WebP)
+worker/index.js    # Cloudflare Worker API
+worker/schema.sql  # D1 数据库 Schema
+```
+
+## 管理后台
+
+三击页面顶部状态灯解锁 DEBUG CONSOLE，可切换视图、一键通关、清缓存。
+
+Agent 数据直接通过 Cloudflare Dashboard → D1 查看。
