@@ -10,12 +10,11 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const apiKey = request.headers.get('X-API-Key');
+    const url = new URL(request.url);
+    const apiKey = request.headers.get('X-API-Key') || url.searchParams.get('key');
     if (apiKey !== env.API_KEY) {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
-
-    const url = new URL(request.url);
 
     // GET /api/agents/export - 导出 CSV
     if (request.method === 'GET' && url.pathname === '/api/agents/export') {
