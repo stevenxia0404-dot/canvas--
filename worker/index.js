@@ -17,6 +17,25 @@ export default {
 
     const url = new URL(request.url);
 
+    // GET /api/agents/export - 导出 CSV
+    if (request.method === 'GET' && url.pathname === '/api/agents/export') {
+      const { results } = await env.DB.prepare(
+        'SELECT * FROM agents ORDER BY created_at DESC'
+      ).all();
+      const header = 'id,name,emp_id,dept,created_at';
+      const rows = results.map(r =>
+        `${r.id},"${r.name}","${r.emp_id}","${r.dept}","${r.created_at}"`
+      );
+      const csv = [header, ...rows].join('\n');
+      return new Response(csv, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="agents.csv"',
+        },
+      });
+    }
+
     // GET /api/agents - 查询所有学员记录
     if (request.method === 'GET' && url.pathname === '/api/agents') {
       const { results } = await env.DB.prepare(
