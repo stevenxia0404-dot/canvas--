@@ -295,7 +295,7 @@ ESTABLISHING SECURE UPLINK... DONE
           <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse"></div>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-[0_0_10px_#98c379] animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -374,7 +374,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
           <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
             <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse"></div>
+            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-[0_0_10px_#98c379] animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -446,7 +446,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
         <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default shrink-0">
           <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
           <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-          <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] shadow-[0_0_10px_#98c379] animate-pulse"></div>
+          <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-[0_0_10px_#98c379] animate-pulse"></div>
         </div>
       </div>
 
