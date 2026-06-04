@@ -5,4 +5,4 @@ compatibility_date = "2026-06-03"
 [[d1_databases]]
 binding = "DB"
 database_name = "canvas-academy-db"
-database_id = ""
+database_id = "ac6468c4-0295-4b82-9969-094712b5e552"

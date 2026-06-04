@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 // Cloudflare Worker API (部署后替换为实际 URL)
-const API_BASE = 'https://canvas-academy-api.YOUR-SUBDOMAIN.workers.dev';
+const API_BASE = 'https://canvas-academy-api.stevenxia0404.workers.dev';
+const API_KEY = import.meta.env.VITE_API_KEY;
+const fetchOpts = { headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY } };
 
 // 三击解锁管理后台 (防作弊)
 function useTripleClick(timeoutMs = 2000) {
@@ -653,7 +655,7 @@ export default function App() {
       
       {showBriefing && <BriefingModal onClose={() => setShowBriefing(false)} />}
       
-      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} />}
+      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} />}
       {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} />}
       {currentView === 'workspace' && <Workspace agentData={agentData} currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} />}
       {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={handleSecretClick} />}
@@ -670,7 +672,7 @@ export default function App() {
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
             <div className="border-t border-red-900 mt-1 pt-1">
-              <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents`);const d=await r.json();setAgentList(d)}catch(e){alert('Backend unreachable')}}} className="text-left text-[#56b6c2] hover:bg-white/10 w-full">&gt; FETCH AGENT DATA</button>
+              <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents`,{headers:fetchOpts.headers});const d=await r.json();setAgentList(d)}catch(e){alert('Backend unreachable')}}} className="text-left text-[#56b6c2] hover:bg-white/10 w-full">&gt; FETCH AGENT DATA</button>
               {agentList.length > 0 && (
                 <div className="mt-2 max-h-40 overflow-auto text-[8px]">
                   {agentList.map((a,i)=>(
