@@ -1,7 +1,5 @@
-const CACHE_NAME = 'canvas-academy-v1';
+const CACHE_NAME = 'canvas-academy-v2';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
   '/favicon.svg',
   '/manifest.json',
   '/icons/icon-192.png',
