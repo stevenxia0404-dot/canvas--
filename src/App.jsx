@@ -525,14 +525,14 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
     <div className="w-full max-w-2xl bg-[#1a1d24] p-6 sm:p-8 md:p-12 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-[#e5c07b] flex flex-col items-center relative z-10 animate-cert-pop my-auto">
 
       {/* 还原截图中的超大绿色钢印水印 */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-0">
+      <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none z-0">
         <div className="border-[6px] border-[#98c379] rounded-full w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 flex flex-col items-center justify-center -rotate-12">
             <span className="text-[#98c379] font-black text-2xl sm:text-3xl md:text-5xl tracking-widest">OFFICIAL</span>
             <span className="text-[#98c379] font-black text-3xl sm:text-4xl md:text-6xl tracking-widest mt-1 border-t-4 border-[#98c379] pt-1">PASSED</span>
         </div>
       </div>
 
-      <div onClick={onSecretClick} className="absolute top-4 right-4 text-4xl md:text-5xl z-10 cursor-default">🏅</div>
+      <div onClick={onSecretClick} className="absolute top-4 left-1/2 -translate-x-1/2 text-4xl md:text-5xl z-10 cursor-default">🏅</div>
       <h1 className="text-[#e5c07b] text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1">CERTIFICATE</h1>
       <h2 className="text-gray-500 text-xs md:text-sm font-bold tracking-widest border-b border-gray-600 pb-4 mb-8 w-full max-w-sm text-center z-10">CLOUD SECRET AGENT ACADEMY</h2>
       
