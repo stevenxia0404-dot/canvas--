@@ -532,8 +532,8 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
         </div>
       </div>
 
-      <div onClick={onSecretClick} className="absolute top-4 left-1/2 -translate-x-1/2 text-4xl md:text-5xl z-10 cursor-default">🏅</div>
-      <h1 className="text-[#e5c07b] text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1">CERTIFICATE</h1>
+      <div onClick={onSecretClick} className="absolute top-4 left-0 right-0 text-center text-4xl md:text-5xl z-10 cursor-default">🏅</div>
+      <h1 className="text-[#e5c07b] text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1 mt-12">CERTIFICATE</h1>
       <h2 className="text-gray-500 text-xs md:text-sm font-bold tracking-widest border-b border-gray-600 pb-4 mb-8 w-full max-w-sm text-center z-10">CLOUD SECRET AGENT ACADEMY</h2>
       
       <p className="text-[#abb2bf] text-sm md:text-base font-bold leading-loose text-center mb-8 z-10">
