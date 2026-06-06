@@ -148,8 +148,7 @@ function BriefingModal({ onClose }) {
           <button onClick={onClose} className="text-[#e06c75] font-black hover:text-white transition-colors shrink-0 whitespace-nowrap">[ X ] CLOSE</button>
         </div>
         <div className="p-4 sm:p-6 overflow-y-auto max-h-[70vh] text-[#abb2bf] whitespace-pre-wrap font-bold leading-relaxed text-xs sm:text-sm md:text-base custom-scrollbar text-left">
-          <span className="text-[#d19a66] font-black">[ 绝密简报：核心配方 ]</span>
-          {BRIEFING_TEXT.replace(/\[ 绝密简报：核心配方与载杯 \]/, '')}
+          {BRIEFING_TEXT.replace(/^=+\s*$/gm, '').replace(/\n{3,}/g, '\n\n').trim()}
         </div>
       </div>
     </div>
