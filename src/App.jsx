@@ -1,4 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import SPRITE from './sprite.json';
+
+const { cols: COLS, rows: ROWS, icons: ICONS } = SPRITE;
+function spriteStyle(id) {
+  const pos = ICONS[id];
+  if (!pos) return { display: 'none' };
+  const { col, row } = pos;
+  return {
+    backgroundImage: 'url(/assets/icons.webp)',
+    backgroundSize: `${COLS * 100}% ${ROWS * 100}%`,
+    backgroundPosition: `${col / (COLS - 1) * 100}% ${row / (ROWS - 1) * 100}%`,
+    backgroundRepeat: 'no-repeat',
+  };
+}
 
 // Cloudflare Worker API (部署后替换为实际 URL)
 const API_BASE = 'https://canvas-academy-api.stevenxia0404.workers.dev';
@@ -466,7 +480,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
           <div className={`relative w-20 sm:w-24 md:w-36 h-28 sm:h-32 md:h-64 border-x-[6px] md:border-x-8 border-b-[6px] md:border-b-8 border-[#3e4451] rounded-b-xl flex flex-col-reverse bg-white/5 transition-transform ${isShaking ? 'animate-pixel-shake' : ''}`}>
             {stackedContents.map((ing, index) => (
               <div key={index} style={{ flexGrow: ing.count }} className={`w-full ${ing.color} border-t-2 border-black/30 flex items-center justify-center relative overflow-hidden transition-all`}>
-                <img src={`/assets/${ing.id}.webp`} className="absolute w-[80%] h-[80%] object-contain z-10" style={{ imageRendering: 'pixelated' }} alt={ing.name} onError={(e)=>e.target.style.display='none'} />
+                <div className="absolute inset-0 m-auto max-w-[80%] max-h-[80%] aspect-square z-10" style={spriteStyle(ing.id)} />
                 {ing.count > 1 && <span className="absolute z-20 text-white font-black text-[10px] md:text-sm drop-shadow-[0_2px_2px_#000]">x{ing.count}</span>}
               </div>
             ))}
@@ -482,7 +496,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
               {filteredIngredients.map((item) => (
                 <button key={item.id} onClick={() => handleAddIngredient(item)} disabled={glassContents.length >= MAX_CAPACITY || isMixed}
                   className={`relative overflow-hidden ${item.color} border-[1.5px] md:border-2 border-black h-12 sm:h-14 md:h-16 w-full p-1 text-[7px] sm:text-[9px] md:text-[11px] font-bold text-center disabled:opacity-30 shadow-[2px_2px_0_0_#000] transition-all hover:brightness-110 active:translate-x-px flex flex-col items-center justify-center gap-0.5`}>
-                  <img src={`/assets/${item.id}.webp`} alt={item.name} className="h-4 sm:h-5 md:h-7 object-contain drop-shadow-md z-10" style={{ imageRendering: 'pixelated' }} onError={(e)=>e.target.style.display='none'} />
+                  <div className="h-4 sm:h-5 md:h-7 aspect-square drop-shadow-md z-10" style={spriteStyle(item.id)} />
                   <span className="relative z-10 text-white font-black drop-shadow-[0_1px_1px_#000] leading-none uppercase">{item.name}</span>
                   <div className="absolute inset-0 bg-black/20 mix-blend-multiply"></div>
                 </button>
