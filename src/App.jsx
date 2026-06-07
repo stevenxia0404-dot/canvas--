@@ -291,11 +291,11 @@ ESTABLISHING SECURE UPLINK... DONE
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-inner"></div>
-          </div>
+          <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
+            <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#98c379] text-xs md:text-sm leading-none">●</span>
+                      </div>
         </div>
       </div>
     </div>
@@ -370,10 +370,10 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default ml-2 shrink-0">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-inner"></div>
+          <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
+            <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#98c379] text-xs md:text-sm leading-none">●</span>
           </div>
         </div>
       </div>
@@ -442,10 +442,10 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
           <button onClick={onBack} className="text-[#e06c75] font-black hover:text-white transition-colors active:scale-95 text-xs sm:text-sm md:text-base">[ &lt; BACK ]</button>
           <span className="text-[#56b6c2] font-bold tracking-widest text-[8px] sm:text-[10px] md:text-sm uppercase truncate">TARGET: {activeMission.name}</span>
         </div>
-        <div onClick={onSecretClick} className="flex space-x-2 items-center cursor-default shrink-0">
-          <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 border border-black shadow-inner"></div>
-          <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#e5c07b] border border-black shadow-inner"></div>
-          <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#98c379] border border-black shadow-inner"></div>
+        <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default shrink-0">
+          <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
+          <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
+          <span className="text-[#98c379] text-xs md:text-sm leading-none">●</span>
         </div>
       </div>
 
