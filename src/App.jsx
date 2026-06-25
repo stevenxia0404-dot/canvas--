@@ -4,7 +4,12 @@ import SPRITE from './sprite.json';
 const { cols: COLS, rows: ROWS, icons: ICONS } = SPRITE;
 function spriteStyle(id) {
   const pos = ICONS[id];
-  if (!pos) return { display: 'none' };
+  if (!pos) return {
+    backgroundImage: `url(/assets/${id}.webp)`,
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  };
   const { col, row } = pos;
   return {
     backgroundImage: 'url(/assets/icons.webp)',
@@ -17,6 +22,9 @@ function spriteStyle(id) {
 // Cloudflare Worker API (部署后替换为实际 URL)
 const API_BASE = 'https://canvas-academy-api.stevenxia0404.workers.dev';
 const API_KEY = import.meta.env.VITE_API_KEY;
+
+const BANNER_VERSION = 'v2.2';
+const BANNER_MSG = '[ SYSTEM NOTICE ] 配方数据库 v2.2 — 新增 20-23 号客舱特调 · 反馈面板上线';
 const fetchOpts = { headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY } };
 
 // 三击解锁管理后台 (防作弊)
@@ -86,6 +94,9 @@ const INGREDIENTS = [
   { id: 'coffee_spoon', name: '咖啡勺', color: 'bg-gray-400', category: 'special' },
   { id: 'mug', name: '马克杯', color: 'bg-stone-400', category: 'special' },
   { id: 'teacup', name: '茶杯', color: 'bg-stone-200', category: 'special' },
+  { id: 'jasmine_tea', name: '茉莉气泡茶', color: 'bg-green-200', category: 'special' },
+  { id: 'sea_salt_oolong_tea', name: '海盐乌龙气泡茶', color: 'bg-amber-500', category: 'special' },
+  { id: 'apple_juice', name: '苹果汁', color: 'bg-amber-200', category: 'special' },
 ];
 
 // ==========================================
@@ -112,6 +123,10 @@ const MISSIONS = [
   { id: 's8', name: '薄荷汽水', enName: 'Mint Soda', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sprite,mint_liqueur,mint_leaf,stirrer' }], desc: '气泡跳跃，薄荷清凉' },
   { id: 's9', name: '薄荷牛奶', enName: 'Mint Milk', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_liqueur,milk,mint_leaf,stirrer' }], desc: '丝滑奶香，薄荷回甘' },
   { id: 's10', name: '百香柠柠', enName: 'Passion Lemon', category: 'special', variants: [{ glass: 'long_glass', seq: 'passion_lemon,mineral_water,stirrer,ice' }], desc: '冻干果茶，酸甜可口' },
+  { id: 's11', name: '风从东方来·云上', enName: 'Cloud Above', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,lemon_juice,jasmine_tea,mint_leaf,stirrer' }], desc: '万米云巅，清雅茉香' },
+  { id: 's12', name: '风从东方来·海屿', enName: 'Sea Island', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sea_salt_oolong_tea,apple_juice,lemon_slice,stirrer' }], desc: '乘风越山海，清欢入杯盏' },
+  { id: 's13', name: '橙C美式', enName: 'Orange C Americano', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,orange_juice,coffee_pot,paper_cup,coffee_spoon,lemon_slice,stirrer' }], desc: '橙黄渐变，果香馥郁' },
+  { id: 's14', name: '菠萝气泡美式', enName: 'Pineapple Bubbly Americano', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,pineapple_juice,soda,coffee_pot,mint_leaf,stirrer' }], desc: '热带果香，气泡灵动' },
 ];
 
 const BRIEFING_TEXT = `=========================================
@@ -120,34 +135,40 @@ const BRIEFING_TEXT = `=========================================
 > 考核已锁定。请严格记忆制作方法、物料顺序与载杯。
 > 提醒：载杯置入不限顺序，但物料添加必须严格遵循操作流！
 
-01. 金 汤 力: 长饮杯 | 冰块, 金酒, 汤力水, 柠檬片, 搅拌棒
-02. 汤姆卡林: 长饮杯 | 调酒壶, 冰块, 金酒, 柠檬汁, 砂糖, 冰块, 苏打水, 柠檬片, 搅拌棒
-03. 自由古巴: 长饮杯 | 冰块, 朗姆酒, 可乐, 柠檬片, 搅拌棒
-04. 螺 丝 钻:
+01. 金 汤 力 / Gin Tonic: 长饮杯 | 冰块, 金酒, 汤力水, 柠檬片, 搅拌棒
+02. 汤姆卡林 / Tom Collins: 长饮杯 | 调酒壶, 冰块, 金酒, 柠檬汁, 砂糖, 冰块, 苏打水, 柠檬片, 搅拌棒
+03. 自由古巴 / Cuba Libra: 长饮杯 | 冰块, 朗姆酒, 可乐, 柠檬片, 搅拌棒
+04. 螺 丝 钻 / Screwdriver:
     - 方案A (长饮杯): 冰块, 伏特加, 橙汁, 柠檬片, 搅拌棒
     - 方案B (古典杯): 冰块, 伏特加, 橙汁, 柠檬片
-05. 绝对干姜: 长饮杯 | 冰块, 伏特加, 干姜水, 柠檬角, 搅拌棒
-06. 绝对汤力: 长饮杯 | 冰块, 伏特加, 汤力水, 柠檬角, 搅拌棒
-07. 黑俄罗斯: 古典杯 | 冰块, 伏特加, 咖啡酒, 樱桃
-08. 白俄罗斯: 古典杯 | 冰块, 伏特加, 咖啡酒, 牛奶, 樱桃
-09. 含 羞 草: 香槟杯 | 香槟, 橙汁
+05. 绝对干姜 / Absolute Ginger Ale: 长饮杯 | 冰块, 伏特加, 干姜水, 柠檬角, 搅拌棒
+06. 绝对汤力 / Absolute Tonic: 长饮杯 | 冰块, 伏特加, 汤力水, 柠檬角, 搅拌棒
+07. 黑俄罗斯 / Black Russian: 古典杯 | 冰块, 伏特加, 咖啡酒, 樱桃
+08. 白俄罗斯 / White Russian: 古典杯 | 冰块, 伏特加, 咖啡酒, 牛奶, 樱桃
+09. 含 羞 草 / Mimosa: 香槟杯 | 香槟, 橙汁
 
 =========================================
 [ 绝密简报：客舱特调 · 核心配方 ]
 =========================================
 
-10. 日出东方: 长饮杯 | 菠萝汁, 番茄汁, 搅拌棒
-11. 明亮前橙: 长饮杯 | 柠檬汁, 鲜橙汁, 盐, 汤力水, 薄荷叶, 搅拌棒
-12. 万家灯火:
+10. 日出东方 / Sunrise: 长饮杯 | 菠萝汁, 番茄汁, 搅拌棒
+11. 明亮前橙 / Bright Orange: 长饮杯 | 柠檬汁, 鲜橙汁, 盐, 汤力水, 薄荷叶, 搅拌棒
+12. 万家灯火 / Myriad Lights:
     - 方案A (茶壶冲泡): 马克杯 | 茶壶, 普洱茶, 红枣枸杞, 红枣枸杞
     - 方案B (马克杯冲泡): 马克杯 | 普洱茶, 红枣枸杞
-13. 仲    夏: 长饮杯 | 冰块, 酸梅汁, 苏打水, 薄荷叶, 搅拌棒
-14. 柠    夏: 长饮杯 | 薄荷叶×2, 冰块, 薄荷叶×2, 柠檬片×2, 冰块, 柠檬汁, 苏打水, 薄荷叶, 搅拌棒
-15. 踏    雪: 长饮杯 | 冰块, 牛奶, 咖啡, 搅拌棒
-16. 薄荷咖啡: 长饮杯 | 薄荷糖浆, 冰块, 咖啡, 薄荷叶, 搅拌棒
-17. 薄荷汽水: 长饮杯 | 冰块, 雪碧, 薄荷糖浆, 薄荷叶, 搅拌棒
-18. 薄荷牛奶: 长饮杯 | 薄荷糖浆, 牛奶, 薄荷叶, 搅拌棒
-19. 百香柠柠: 长饮杯 | 百香柠柠, 矿泉水, 搅拌棒, 冰块
+13. 仲    夏 / Midsummer: 长饮杯 | 冰块, 酸梅汁, 苏打水, 薄荷叶, 搅拌棒
+14. 柠    夏 / Summer Lemon: 长饮杯 | 薄荷叶×2, 冰块, 薄荷叶×2, 柠檬片×2, 冰块, 柠檬汁, 苏打水, 薄荷叶, 搅拌棒
+15. 踏    雪 / Snow Step: 长饮杯 | 冰块, 牛奶, 咖啡, 搅拌棒
+16. 薄荷咖啡 / Mint Coffee: 长饮杯 | 薄荷糖浆, 冰块, 咖啡, 薄荷叶, 搅拌棒
+17. 薄荷汽水 / Mint Soda: 长饮杯 | 冰块, 雪碧, 薄荷糖浆, 薄荷叶, 搅拌棒
+18. 薄荷牛奶 / Mint Milk: 长饮杯 | 薄荷糖浆, 牛奶, 薄荷叶, 搅拌棒
+19. 百香柠柠 / Passion Lemon: 长饮杯 | 百香柠柠, 矿泉水, 搅拌棒, 冰块
+20. 云    上 / Cloud Above: 长饮杯 | 冰块, 柠檬汁, 茉莉气泡茶, 薄荷叶, 搅拌棒
+21. 海    屿 / Sea Island: 长饮杯 | 冰块, 海盐乌龙气泡茶, 苹果汁, 柠檬片, 搅拌棒
+22. 橙C美式 / Orange C Americano: 长饮杯 | 冰块, 鲜橙汁, 咖啡, 纸杯, 咖啡勺, 柠檬片, 搅拌棒
+23. 菠萝气泡美式 / Pineapple Bubbly Americano: 长饮杯 | 冰块, 菠萝汁, 苏打水, 咖啡, 薄荷叶, 搅拌棒
+
+[ 2026-06-24 ] v2.2 — 新增 4 款客舱特调 + 反馈与关于面板
 =========================================`;
 
 // ==========================================
@@ -159,6 +180,7 @@ function BriefingModal({ onClose }) {
       <div className="w-full max-w-2xl bg-[#131313] border-4 border-[#3e4451] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-[cert-pop_0.2s_ease-out]">
         <div className="bg-[#1e222a] border-b-2 border-[#3e4451] px-4 py-2 flex justify-between items-center">
           <span className="text-[#e5c07b] font-black tracking-widest text-xs md:text-sm">[ SYSTEM ARCHIVE / 系统档案 ]</span>
+          <span className="text-[#5c6370] text-[8px] md:text-[9px] ml-2 hidden sm:inline">可按需查阅</span>
           <button onClick={onClose} className="text-[#e06c75] font-black hover:text-white transition-colors shrink-0 whitespace-nowrap">[ X ] CLOSE</button>
         </div>
         <div className="p-4 sm:p-6 overflow-y-auto max-h-[70vh] text-[#abb2bf] whitespace-pre-wrap font-bold leading-relaxed text-xs sm:text-sm md:text-base custom-scrollbar text-left">
@@ -170,9 +192,84 @@ function BriefingModal({ onClose }) {
 }
 
 // ==========================================
+// 组件：工具面板（关于 + 反馈）
+// ==========================================
+function UtilityPanel({ onClose }) {
+  const [tab, setTab] = useState('about');
+  const [fbName, setFbName] = useState('');
+  const [fbMsg, setFbMsg] = useState('');
+  const [fbSent, setFbSent] = useState(false);
+
+  const handleFeedback = async () => {
+    if (!fbMsg.trim()) return;
+    try {
+      await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: fetchOpts.headers, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
+      setFbSent(true);
+    } catch (e) { /* silent */ }
+  };
+
+  const CHANGELOG = `v2.2 — 2026-06-24
+· 新增 4 款客舱特调（云上/海屿/橙C美式/菠萝气泡美式）
+· 简报全部 23 款饮品加英文名
+· CSS Sprite 回退机制 + 3 种新物料图标
+· 新增反馈与关于面板 [ i ]
+· 品牌名统一：CLOUD AGENT ACADEMY / 云端特勤学院
+· 倒计时修复（打字完成后再启动）`;
+
+  return (
+    <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <div className="w-full max-w-lg bg-[#131313] border-4 border-[#3e4451] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-[cert-pop_0.2s_ease-out]">
+        <div className="bg-[#1e222a] border-b-2 border-[#3e4451] px-4 py-2 flex justify-between items-center">
+          <span className="text-[#e5c07b] font-black tracking-widest text-xs md:text-sm">[ INFO PANEL / 系统面板 ]</span>
+          <button onClick={onClose} className="text-[#e06c75] font-black hover:text-white transition-colors shrink-0">[ X ] CLOSE</button>
+        </div>
+        <div className="flex border-b-2 border-[#3e4451]">
+          <button onClick={() => setTab('about')} className={`flex-1 py-2 text-xs font-black tracking-widest transition-all ${tab === 'about' ? 'text-[#e5c07b] bg-[#e5c07b]/10 border-b-2 border-[#e5c07b]' : 'text-gray-500 hover:text-gray-300'}`}>[ 关于 ]</button>
+          <button onClick={() => setTab('feedback')} className={`flex-1 py-2 text-xs font-black tracking-widest transition-all ${tab === 'feedback' ? 'text-[#e5c07b] bg-[#e5c07b]/10 border-b-2 border-[#e5c07b]' : 'text-gray-500 hover:text-gray-300'}`}>[ 反馈 ]</button>
+        </div>
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[60vh] text-[#abb2bf] font-bold leading-relaxed text-xs sm:text-sm custom-scrollbar text-left">
+          {tab === 'about' && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-[#e5c07b] font-black text-lg tracking-widest">CLOUD AGENT ACADEMY</div>
+                <div className="text-[#56b6c2] font-black text-sm mt-1">v2.2</div>
+                <div className="text-gray-500 text-[10px] mt-1">云端特勤学院 · build 2026-06-24</div>
+              </div>
+              <div className="border-t border-[#3e4451] pt-3">
+                <div className="text-[#56b6c2] text-[10px] tracking-widest mb-2 uppercase">[ CHANGELOG / 更新日志 ]</div>
+                <div className="whitespace-pre-wrap text-gray-400 text-[10px] leading-relaxed">{CHANGELOG}</div>
+              </div>
+              <div className="border-t border-[#3e4451] pt-3">
+                <div className="text-[#56b6c2] text-[10px] tracking-widest mb-1 uppercase">[ CONTACT / 联系 ]</div>
+                <div className="text-gray-500 text-[10px] leading-relaxed">📧 xiaxiaolei@ceair.com</div>
+                <div className="text-gray-500 text-[10px] leading-relaxed">💬 MUC: xiaxiaolei</div>
+              </div>
+            </div>
+          )}
+          {tab === 'feedback' && (
+            <div className="space-y-3">
+              <div className="text-[#56b6c2] text-[10px] tracking-widest">[ FEEDBACK / 用户反馈 ]</div>
+              {fbSent ? (
+                <div className="text-[#98c379] text-center py-6 font-black text-sm">反馈已提交，感谢！</div>
+              ) : (
+                <>
+                  <input value={fbName} onChange={e => setFbName(e.target.value)} placeholder="昵称（选填）" className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600" maxLength={30} />
+                  <textarea value={fbMsg} onChange={e => setFbMsg(e.target.value)} placeholder="留言..." rows={4} className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600 resize-none" maxLength={500} />
+                  <button onClick={handleFeedback} disabled={!fbMsg.trim()} className="w-full bg-[#98c379] text-[#131313] border-b-4 border-[#689d4a] py-2 font-black text-xs rounded active:translate-y-px active:border-b-2 disabled:opacity-40 transition-all">[ 提交反馈 ]</button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
 // 组件：Node 1 终端登录 (替换专属欢迎词)
 // ==========================================
-function TerminalLogin({ onComplete, isAudioOn, toggleAudio, toggleBriefing, onSecretClick }) {
+function TerminalLogin({ onComplete, isAudioOn, toggleAudio, toggleBriefing, togglePanel, onSecretClick }) {
   const [step, setStep] = useState(0);
   const [terminalHistory, setTerminalHistory] = useState('');
   const [typingText, setTypingText] = useState('');
@@ -197,12 +294,12 @@ function TerminalLogin({ onComplete, isAudioOn, toggleAudio, toggleBriefing, onS
   }, [typingIndex, typingText, step]);
 
   useEffect(() => {
-    setTypingText(`CLOUD SECRET AGENT ACADEMY
+    setTypingText(`CLOUD AGENT ACADEMY
 INITIALIZING SYSTEM...
 MEMORY CHECK: 640K OK
 ESTABLISHING SECURE UPLINK... DONE
 
-> 欢迎来到云端特勤局学院终端。
+> 欢迎来到云端特勤学院终端。
 > 请输入您的学员信息以启动系统...\n\n`);
   }, []);
 
@@ -212,9 +309,9 @@ ESTABLISHING SECURE UPLINK... DONE
 
   useEffect(() => {
     let timer;
-    if ((step === 5 || step === 6) && countdown > 0) {
+    if (step === 6 && countdown > 0) {
       timer = setInterval(() => setCountdown(c => c - 1), 1000);
-    } else if (countdown === 0 && (step === 5 || step === 6)) {
+    } else if (countdown === 0 && step === 6) {
       onComplete(formData);
     }
     return () => clearInterval(timer);
@@ -228,15 +325,17 @@ ESTABLISHING SECURE UPLINK... DONE
       setStep(3);
       // 精准替换为用户提供的三万英尺高空欢迎词
       setTypingText(`> 身份验证通过。欢迎归队，特工 ${formData.name}。
-> 你的专属战场在三万英尺的高空，而“云端特勤局学院”是你淬炼顶尖技能的唯一基地。
+> 你的专属战场在三万英尺的高空，而“云端特勤学院”是你淬炼顶尖技能的唯一基地。
 > 在这里，每一次飞行任务不仅依靠硬核的安全守卫，更取决于你对机舱后勤与专业呈现的绝对掌控。
 > 
-> 特勤局刚刚截获了最新的情报：随着洲际航线任务的升级，目标人物对客舱餐饮的标准已提升至 S 级。你目前的优先级任务，是彻底攻克【CLOUD LOUNGE云端酒廊】的通关考核。
+> 学院刚刚截获了最新的情报：随着洲际航线任务的升级，目标人物对客舱餐饮的标准已提升至 S 级。你目前的优先级任务，是彻底攻克【CLOUD LOUNGE云端酒廊】的通关考核。
 > 
 > 请记住，特工 ${formData.name}。在这片云端战场上，冰块的比例、基酒的选择、甚至一根搅拌棒的放置顺序，都可能决定一次任务的完美成败。
 > 你没有在客舱里翻阅手册的时间，一切配方必须化为你的肌肉记忆。
 > 
-> 接下来系统将为你下发本次行动的绝密配方简报。祝你好运！！！\n\n`);
+> 接下来系统将为你下发本次行动的绝密配方简报。祝你好运！！！
+
+[ SYSTEM NOTICE ] 配方数据库 v2.2 — 2026-06-24 更新\n\n`);
     }, 1000);
   };
 
@@ -301,10 +400,11 @@ ESTABLISHING SECURE UPLINK... DONE
       </div>
 
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-gray-500 font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[8px] sm:text-[9px]">云端特勤局</span></div>
+        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[8px] sm:text-[9px]">云端特勤学院 · v2.2</span></div>
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
+          <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
           <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
             <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
             <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
@@ -321,10 +421,10 @@ ESTABLISHING SECURE UPLINK... DONE
 // ==========================================
 const CATEGORIES = [
   { id: 'bar', label: '🍸 云端酒廊', count: 9 },
-  { id: 'special', label: '🍵 客舱特调', count: 10 },
+  { id: 'special', label: '🍵 客舱特调', count: 14 },
 ];
 
-function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, missionResults, flippedMissions, setFlippedMissions, category, setCategory, onSecretClick }) {
+function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, togglePanel, missionResults, flippedMissions, setFlippedMissions, category, setCategory, onSecretClick }) {
   const filteredMissions = missions.filter(m => m.category === category);
   const activeIndex = filteredMissions.findIndex(m => missionResults[m.id] !== 'PASS');
   const finalActiveIndex = activeIndex === -1 ? filteredMissions.length : activeIndex;
@@ -335,6 +435,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
         <div className="absolute inset-0 pointer-events-none opacity-30 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px] z-40"></div>
         <div className="relative z-20 mb-3 md:mb-4 border-b-2 border-[#3e4451] pb-2 text-left">
           <h1 className="text-[#56b6c2] text-base sm:text-lg md:text-2xl font-black tracking-widest uppercase">[ DATABASE / 任务大厅 ]</h1>
+          {(() => { const p = Object.values(missionResults).filter(r => r === 'PASS').length; const t = missions.length; const w = Math.round(p/t*10); return (<div className="text-[#98c379] text-[9px] sm:text-[10px] font-bold mt-1 tracking-wider">{'█'.repeat(w)}{'░'.repeat(10-w)}  {p} / {t} 已通过</div>); })()}
           <div className="flex gap-2 mt-2">
             {CATEGORIES.map(cat => (
               <button key={cat.id} onClick={() => setCategory(cat.id)}
@@ -343,7 +444,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
                     ? 'border-[#e5c07b] text-[#e5c07b] bg-[#e5c07b]/10 shadow-[2px_2px_0_#9a8153]'
                     : 'border-gray-600 text-gray-500 hover:border-gray-400 hover:text-gray-300'
                 }`}
-              >{cat.label} <span className="text-[10px] opacity-60">/ {cat.count}</span></button>
+              >{cat.label} <span className="text-[10px] opacity-60">/ {cat.count}</span>{(() => { const p = missions.filter(m => m.category === cat.id && missionResults[m.id] === 'PASS').length; return p > 0 ? <span className="text-[#e5c07b]/60 text-[9px] ml-0.5">({p})</span> : null; })()}</button>
             ))}
           </div>
         </div>
@@ -353,7 +454,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
             const status = missionResults[mission.id];
             const isLocked = index > finalActiveIndex;
             return (
-              <div key={mission.id} onClick={() => !isLocked && (isFlipped ? onSelectMission(mission) : setFlippedMissions([...flippedMissions, mission.id]))} className={`perspective w-full h-full ${isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer group'}`}>
+              <div key={mission.id} onClick={() => !isLocked && (isFlipped ? onSelectMission(mission) : setFlippedMissions([...flippedMissions, mission.id]))} className={`perspective w-full h-full ${isLocked ? 'cursor-not-allowed opacity-60 group' : 'cursor-pointer group'}`}>
                 <div className={`w-full h-full relative preserve-3d transition-transform duration-500 ease-out ${isFlipped ? 'rotate-y-180' : ''}`}>
 
                   {/* 未翻开：LOCKED 或 CLASSIFIED */}
@@ -361,7 +462,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
                     <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14 rounded-full border-[2px] md:border-[3px] border-[#56b6c2]/40 flex items-center justify-center mb-1 bg-[#131313]/50 shadow-inner">
                       <span className="text-[#56b6c2]/60 text-base sm:text-lg md:text-2xl font-black">{isLocked ? 'X' : '?'}</span>
                     </div>
-                    <div className="text-gray-500 text-[8px] sm:text-[9px] md:text-xs font-bold tracking-widest uppercase">{isLocked ? 'LOCKED' : 'CLASSIFIED'}</div>
+                    <div className="text-gray-500 text-[8px] sm:text-[9px] md:text-xs font-bold tracking-widest uppercase">{isLocked ? (<span className="group-hover:hidden">LOCKED</span>) : 'CLASSIFIED'}{isLocked && <span className="hidden group-hover:inline text-[#e5c07b]">完成前一关解锁</span>}</div>
                   </div>
 
                   {/* 已翻开：中英双语版式 */}
@@ -380,10 +481,11 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
         </div>
       </div>
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-gray-500 font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic">CLOUD SECRET AGENT <span className="text-[#5c6370] ml-1 font-black text-[8px] sm:text-[9px]">云端特勤局</span></div>
+        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[8px] sm:text-[9px]">云端特勤学院 · v2.2</span></div>
         <div className="flex space-x-3 items-center">
           <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
           <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
+          <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
           <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
             <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
             <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
@@ -398,21 +500,23 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
 // ==========================================
 // 组件：Node 3 操作台
 // ==========================================
-function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, category, onSecretClick }) {
+function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggleAudio, toggleBriefing, togglePanel, category, onSecretClick, showToast }) {
   const activeMission = currentMission || { id: 'dev', name: 'DEV', variants: [{glass:'long_glass',seq:'ice'}] };
   const [glassContents, setGlassContents] = useState([]);
   const [isShaking, setIsShaking] = useState(false);
   const [resultMsg, setResultMsg] = useState(`特工准备就绪。\n调制【${activeMission.name}】`);
   const [isMixed, setIsMixed] = useState(false);
   const [stampStatus, setStampStatus] = useState(null);
+  const [backConfirm, setBackConfirm] = useState(false);
   const MAX_CAPACITY = 12;
   const filteredIngredients = INGREDIENTS.filter(i => i.category === 'all' || i.category === category);
 
   const handleAddIngredient = (ingredient) => {
-    if (isMixed) return; 
+    if (isMixed) return;
     if (glassContents.length < MAX_CAPACITY) {
       setGlassContents([...glassContents, ingredient]);
       setResultMsg('添加了: ' + ingredient.name);
+      showToast(`+ ${ingredient.name}`, 'info');
     } else {
       setResultMsg('警告：容量已达极限！');
     }
@@ -435,10 +539,12 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
       }
       if (isPass) {
         setResultMsg(`【${activeMission.name}】\n验证通过。`);
-        setStampStatus('PASS'); onMissionComplete(activeMission.id, 'PASS'); 
+        setStampStatus('PASS'); onMissionComplete(activeMission.id, 'PASS');
+        showToast(`✅ PASS — ${activeMission.name}`, 'pass');
       } else {
         setResultMsg('【失败】\n操作顺序或载杯错误。');
-        setStampStatus('FAIL'); onMissionComplete(activeMission.id, 'FAIL'); 
+        setStampStatus('FAIL'); onMissionComplete(activeMission.id, 'FAIL');
+        showToast('❌ FAIL — 序列不符', 'fail');
       }
     }, 1500);
   };
@@ -453,8 +559,9 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
     <div className="w-full max-w-5xl bg-[#131313] border-b-8 border-r-8 border-black rounded-[1.5rem] sm:rounded-[2rem] p-2 sm:p-3 md:p-6 lg:p-8 flex flex-col relative shadow-[0_20px_50px_rgba(0,0,0,0.9)] h-[90vh] md:h-[94vh] overflow-hidden text-left">
       <div className="absolute top-0 left-0 w-full h-8 sm:h-10 md:h-12 bg-[#1e222a] border-b-4 border-[#0a0a0a] rounded-t-[2rem] flex items-center px-2 sm:px-4 md:px-8 justify-between -mt-1 z-50">
         <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={onBack} className="text-[#e06c75] font-black hover:text-white transition-colors active:scale-95 text-xs sm:text-sm md:text-base">[ &lt; BACK ]</button>
+          <button onClick={() => { if (backConfirm) { onBack(); } else if (glassContents.length > 0) { setBackConfirm(true); setTimeout(() => setBackConfirm(false), 3000); } else { onBack(); } }} className={`font-black hover:text-white transition-colors active:scale-95 text-xs sm:text-sm md:text-base ${backConfirm ? 'text-[#e5c07b] animate-pulse' : 'text-[#e06c75]'}`}>{backConfirm ? '[ 确认返回？再次点击 ]' : '[ < BACK ]'}</button>
           <span className="text-[#56b6c2] font-bold tracking-widest text-[8px] sm:text-[10px] md:text-sm uppercase truncate">TARGET: {activeMission.name}</span>
+          <button onClick={togglePanel} title="配方判定：载杯不限加入顺序，物料必须严格按序列添加" className="text-[#56b6c2] text-[10px] sm:text-xs font-black hover:text-white ml-1 shrink-0">[ ? ]</button>
         </div>
         <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default shrink-0">
           <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
@@ -475,7 +582,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
         <div className="w-full md:w-1/3 flex flex-col items-center justify-start h-[35%] md:h-auto shrink-0">
           <div className="w-full bg-[#0a0a0a] border-4 border-[#3e4451] rounded-lg mb-4 p-2 shadow-[inset_0_0_20px_rgba(0,0,0,1)] relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]"></div>
-            <p className="text-[#98c379] whitespace-pre-line leading-snug h-8 sm:h-10 md:h-16 flex items-center justify-center text-center font-bold text-[9px] sm:text-xs md:text-sm lg:text-base">{resultMsg}</p>
+            <p className={`whitespace-pre-line leading-snug h-8 sm:h-10 md:h-16 flex items-center justify-center text-center font-bold text-[9px] sm:text-xs md:text-sm lg:text-base ${glassContents.length >= MAX_CAPACITY ? 'text-[#e06c75] capacity-flash' : 'text-[#98c379]'}`}>{resultMsg}</p>
           </div>
           <div className={`relative w-20 sm:w-24 md:w-36 h-28 sm:h-32 md:h-64 border-x-[6px] md:border-x-8 border-b-[6px] md:border-b-8 border-[#3e4451] rounded-b-xl flex flex-col-reverse bg-white/5 transition-transform ${isShaking ? 'animate-pixel-shake' : ''}`}>
             {stackedContents.map((ing, index) => (
@@ -517,6 +624,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
             <div className="flex justify-end gap-2">
               <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
               <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
+              <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
             </div>
           </div>
         </div>
@@ -547,7 +655,7 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
 
       <div onClick={onSecretClick} className="absolute top-4 left-0 right-0 text-center text-4xl md:text-5xl z-10 cursor-default">🏅</div>
       <h1 className="text-[#e5c07b] text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.2em] uppercase z-10 mb-1 mt-12">CERTIFICATE</h1>
-      <h2 className="text-gray-500 text-xs md:text-sm font-bold tracking-widest border-b border-gray-600 pb-4 mb-8 w-full max-w-sm text-center z-10">CLOUD SECRET AGENT ACADEMY</h2>
+      <h2 className="text-gray-500 text-xs md:text-sm font-bold tracking-widest border-b border-gray-600 pb-4 mb-8 w-full max-w-sm text-center z-10">CLOUD AGENT ACADEMY</h2>
       
       <p className="text-[#abb2bf] text-sm md:text-base font-bold leading-loose text-center mb-8 z-10">
         经系统核准，特工 <span className="text-[#e5c07b] font-black text-base sm:text-lg md:text-xl border-b border-dashed border-[#e5c07b] px-1">{agentData.name}</span><br/>
@@ -567,8 +675,9 @@ function Graduation({ agentData, onReset, failCount, onSecretClick }) {
          </div>
       </div>
 
-      <div className="w-full max-w-sm border-t border-gray-800 pt-6 flex justify-center z-10">
+      <div className="w-full max-w-sm border-t border-gray-800 pt-6 flex flex-col items-center z-10">
         <button onClick={onReset} className="bg-transparent border border-gray-600 text-gray-400 px-6 py-2 text-xs md:text-sm font-bold tracking-widest hover:border-[#e06c75] hover:text-[#e06c75] transition-all">[ SYSTEM REBOOT ]</button>
+        <div className="text-[#5c6370] text-[8px] mt-2">CLOUD AGENT ACADEMY v2.2 · build 2026-06-24</div>
       </div>
     </div>
   );
@@ -589,9 +698,18 @@ export default function App() {
   const [flippedMissions, setFlippedMissions] = useState([]);
   const [failCount, setFailCount] = useState(0);
   const [isDevOpen, handleSecretClick, closeDev] = useTripleClick();
+  const [isPanelOpen, setPanelOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [showBanner, setShowBanner] = useState(() => localStorage.getItem('bannerVersion') !== BANNER_VERSION);
 
   const [category, setCategory] = useState('bar');
   const audioRef = useRef(null);
+
+  const showToast = useCallback((text, type = 'info') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, text, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 2000);
+  }, []);
 
   useEffect(() => {
     audioRef.current = new Audio('/assets/bgm.mp3');
@@ -639,7 +757,7 @@ export default function App() {
       localStorage.setItem('missionResults', JSON.stringify(missionResults));
       localStorage.setItem('flippedMissions', JSON.stringify(flippedMissions));
       localStorage.setItem('failCount', failCount.toString());
-      if (Object.values(missionResults).filter(r => r === 'PASS').length === 19) {
+      if (Object.values(missionResults).filter(r => r === 'PASS').length === 23) {
         if (currentView !== 'graduation') setTimeout(() => setCurrentView('graduation'), 1000);
       }
     }
@@ -661,16 +779,37 @@ export default function App() {
         .animate-pixel-shake { animation: pixel-shake 0.1s infinite; }
         @keyframes stamp-drop { 0%{transform:scale(2);opacity:0} 100%{transform:scale(1) rotate(-12deg);opacity:0.9} }
         .stamp { animation: stamp-drop 0.2s ease-out forwards; }
-        @keyframes cert-pop { 0%{transform:scale(1.1);opacity:0} 100%{transform:scale(1);opacity:1} }
+        @keyframes capacity-flash { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .capacity-flash { animation: capacity-flash 0.6s ease-in-out 3; }
         .animate-cert-pop { animation: cert-pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
         .perspective { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); }
+        @keyframes toast-in { 0%{transform:translateX(100%);opacity:0} 100%{transform:translateX(0);opacity:1} }
+        .toast-in { animation: toast-in 0.25s ease-out forwards; }
       `}} />
-      
+
+      {showBanner && (
+        <div className="absolute top-0 left-0 right-0 z-[150] bg-[#1e222a] border-b border-[#e5c07b]/30 text-[#e5c07b] text-[9px] sm:text-[10px] font-bold px-3 py-1 flex items-center justify-between">
+          <span>{BANNER_MSG}</span>
+          <button onClick={() => { setShowBanner(false); localStorage.setItem('bannerVersion', BANNER_VERSION); }} className="ml-2 text-[#e06c75] hover:text-white text-xs shrink-0">[ ✕ ]</button>
+        </div>
+      )}
+
+      <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 pointer-events-none">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast-in pointer-events-auto px-3 py-1.5 rounded border text-[10px] sm:text-xs font-bold shadow-lg ${
+            t.type === 'pass' ? 'bg-[#1e222a] border-[#98c379] text-[#98c379]' :
+            t.type === 'fail' ? 'bg-[#1e222a] border-[#e06c75] text-[#e06c75]' :
+            'bg-[#1e222a] border-[#56b6c2] text-[#56b6c2]'
+          }`}>{t.text}</div>
+        ))}
+      </div>
+
       {showBriefing && <BriefingModal onClose={() => setShowBriefing(false)} />}
+      {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} />}
       
-      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} />}
-      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} />}
-      {currentView === 'workspace' && <Workspace currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} />}
+      {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
+      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
+      {currentView === 'workspace' && <Workspace currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} showToast={showToast} />}
       {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={handleSecretClick} />}
 
       {isDevOpen && (
