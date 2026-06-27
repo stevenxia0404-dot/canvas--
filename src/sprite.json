@@ -1,167 +1,179 @@
 {
   "cell": 128,
   "cols": 8,
-  "rows": 5,
+  "rows": 6,
   "icons": {
-    "champagne": {
+    "apple_juice": {
       "col": 0,
+      "row": 0
+    },
+    "champagne": {
+      "col": 1,
       "row": 0
     },
     "champagne_glass": {
-      "col": 1,
+      "col": 2,
       "row": 0
     },
     "cherry": {
-      "col": 2,
+      "col": 3,
       "row": 0
     },
     "coffee_liqueur": {
-      "col": 3,
+      "col": 4,
       "row": 0
     },
     "coffee_pot": {
-      "col": 4,
+      "col": 5,
       "row": 0
     },
     "coffee_spoon": {
-      "col": 5,
+      "col": 6,
       "row": 0
     },
     "cola": {
-      "col": 6,
+      "col": 7,
       "row": 0
     },
     "gin": {
-      "col": 7,
-      "row": 0
+      "col": 0,
+      "row": 1
     },
     "ginger_ale": {
-      "col": 0,
+      "col": 1,
       "row": 1
     },
     "ice": {
-      "col": 1,
+      "col": 2,
+      "row": 1
+    },
+    "jasmine_tea": {
+      "col": 3,
       "row": 1
     },
     "lemon_juice": {
-      "col": 2,
+      "col": 4,
       "row": 1
     },
     "lemon_slice": {
-      "col": 3,
+      "col": 5,
       "row": 1
     },
     "lemon_wedge": {
-      "col": 4,
+      "col": 6,
       "row": 1
     },
     "long_glass": {
-      "col": 5,
+      "col": 7,
       "row": 1
     },
     "milk": {
-      "col": 6,
-      "row": 1
+      "col": 0,
+      "row": 2
     },
     "mineral_water": {
-      "col": 7,
-      "row": 1
+      "col": 1,
+      "row": 2
     },
     "mint_leaf": {
-      "col": 0,
+      "col": 2,
       "row": 2
     },
     "mint_liqueur": {
-      "col": 1,
+      "col": 3,
       "row": 2
     },
     "mug": {
-      "col": 2,
+      "col": 4,
       "row": 2
     },
     "orange_juice": {
-      "col": 3,
+      "col": 5,
       "row": 2
     },
     "paper_cup": {
-      "col": 4,
+      "col": 6,
       "row": 2
     },
     "passion_lemon": {
-      "col": 5,
+      "col": 7,
       "row": 2
     },
     "pineapple_juice": {
-      "col": 6,
-      "row": 2
+      "col": 0,
+      "row": 3
     },
     "puer_tea": {
-      "col": 7,
-      "row": 2
+      "col": 1,
+      "row": 3
     },
     "red_date_goji": {
-      "col": 0,
+      "col": 2,
       "row": 3
     },
     "rocks_glass": {
-      "col": 1,
+      "col": 3,
       "row": 3
     },
     "rum": {
-      "col": 2,
+      "col": 4,
       "row": 3
     },
     "salt": {
-      "col": 3,
+      "col": 5,
+      "row": 3
+    },
+    "sea_salt_oolong_tea": {
+      "col": 6,
       "row": 3
     },
     "shaker": {
-      "col": 4,
+      "col": 7,
       "row": 3
     },
     "soda": {
-      "col": 5,
-      "row": 3
-    },
-    "sour_plum_juice": {
-      "col": 6,
-      "row": 3
-    },
-    "sparkling_water": {
-      "col": 7,
-      "row": 3
-    },
-    "sprite": {
       "col": 0,
       "row": 4
     },
-    "stirrer": {
+    "sour_plum_juice": {
       "col": 1,
       "row": 4
     },
-    "sugar": {
+    "sparkling_water": {
       "col": 2,
       "row": 4
     },
-    "teacup": {
+    "sprite": {
       "col": 3,
       "row": 4
     },
-    "teapot": {
+    "stirrer": {
       "col": 4,
       "row": 4
     },
-    "tomato_juice": {
+    "sugar": {
       "col": 5,
       "row": 4
     },
-    "tonic": {
+    "teacup": {
       "col": 6,
       "row": 4
     },
-    "vodka": {
+    "teapot": {
       "col": 7,
       "row": 4
+    },
+    "tomato_juice": {
+      "col": 0,
+      "row": 5
+    },
+    "tonic": {
+      "col": 1,
+      "row": 5
+    },
+    "vodka": {
+      "col": 2,
+      "row": 5
     }
   }
 }

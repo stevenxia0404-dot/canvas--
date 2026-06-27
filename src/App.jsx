@@ -450,7 +450,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
             ))}
           </div>
         </div>
-        <div className="relative z-20 flex-1 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-y-auto custom-scrollbar">
+        <div className="relative z-20 flex-1 grid grid-cols-2 md:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-y-auto custom-scrollbar">
           {filteredMissions.map((mission, index) => {
             const isFlipped = flippedMissions.includes(mission.id);
             const status = missionResults[mission.id];

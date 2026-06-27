@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'fs';
 
 const CELL = 128;
 const COLS = 8;
-const ROWS = 5; // 8x5 = 40 cells
+const ROWS = 6; // 8x6 = 48 cells
 const ASSETS = 'public/assets';
 const OUT_IMG = `${ASSETS}/icons.webp`;
 const OUT_MAP = 'src/sprite.json';
