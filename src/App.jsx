@@ -404,9 +404,9 @@ ESTABLISHING SECURE UPLINK... DONE
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
         <div className="text-[#e5c07b] font-extrabold tracking-widest text-[7px] sm:text-[9px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[7px] sm:text-[9px] sm:inline">云端特勤学院 · v2.2</span></div>
         <div className="flex gap-1 sm:gap-2 md:space-x-3 items-center shrink-0">
-          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="sm:inline">[ 📜 简报 ]</span></button>
-          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="sm:inline">[ 🔇 OFF ]</span></>}</button>
-          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="sm:inline">[ i ]</span></button>
+          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
           <div onClick={onSecretClick} className="flex gap-1 sm:gap-2 items-center cursor-default ml-1 sm:ml-2 shrink-0">
             <span className="text-gray-500 text-[8px] sm:text-xs md:text-sm leading-none">●</span>
             <span className="text-[#e5c07b] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
@@ -485,9 +485,9 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
         <div className="text-[#e5c07b] font-extrabold tracking-widest text-[7px] sm:text-[9px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[7px] sm:text-[9px] sm:inline">云端特勤学院 · v2.2</span></div>
         <div className="flex gap-1 sm:gap-2 md:space-x-3 items-center shrink-0">
-          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="sm:inline">[ 📜 简报 ]</span></button>
-          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="sm:inline">[ 🔇 OFF ]</span></>}</button>
-          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="sm:inline">[ i ]</span></button>
+          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
           <div onClick={onSecretClick} className="flex gap-1 sm:gap-2 items-center cursor-default ml-1 sm:ml-2 shrink-0">
             <span className="text-gray-500 text-[8px] sm:text-xs md:text-sm leading-none">●</span>
             <span className="text-[#e5c07b] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
@@ -596,7 +596,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
           <div className={`relative w-20 sm:w-24 md:w-36 h-28 sm:h-32 md:h-64 border-x-[6px] md:border-x-8 border-b-[6px] md:border-b-8 border-[#3e4451] rounded-b-xl flex flex-col-reverse bg-white/5 transition-transform ${isShaking ? 'animate-pixel-shake' : ''}`}>
             {stackedContents.map((ing, index) => (
               <div key={index} style={{ flexGrow: ing.count }} className={`w-full ${ing.color} border-t-2 border-black/30 flex items-center justify-center relative overflow-hidden transition-all`}>
-                <div className="absolute inset-0 m-auto w-[55%] max-w-[80%] aspect-square z-10" style={spriteStyle(ing.id)} />
+                <div className="absolute inset-0 m-auto max-w-[80%] max-h-[80%] aspect-square z-10" style={spriteStyle(ing.id)} />
                 {ing.count > 1 && <span className="absolute z-20 text-white font-black text-[10px] md:text-sm drop-shadow-[0_2px_2px_#000]">x{ing.count}</span>}
               </div>
             ))}
@@ -631,9 +631,9 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
               <button onClick={()=>{setGlassContents([]);setIsMixed(false);setStampStatus(null);setResultMsg('已清空。')}} disabled={isShaking} className="flex-1 bg-[#e5c07b] text-black border-2 md:border-4 border-black py-2 sm:py-3 md:py-4 font-black text-xs sm:text-base md:text-xl rounded-lg shadow-[3px_3px_0_0_#9a8153] active:translate-x-px">TRASH / 清理</button>
             </div>
             <div className="flex justify-end gap-1 sm:gap-2">
-              <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="sm:inline">[ 📜 简报 ]</span></button>
-              <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="sm:inline">[ 🔇 OFF ]</span></>}</button>
-              <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="sm:inline">[ i ]</span></button>
+              <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+              <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+              <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
             </div>
           </div>
         </div>
@@ -794,6 +794,7 @@ export default function App() {
         .perspective { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); }
         @keyframes toast-in { 0%{transform:translateX(100%);opacity:0} 100%{transform:translateX(0);opacity:1} }
         .toast-in { animation: toast-in 0.25s ease-out forwards; }
+        @media (max-width: 1023px) and (orientation: landscape) { .portrait-lock { display: flex !important; } .portrait-hide { display: none !important; } }
       `}} />
 
       {showBanner && (
@@ -836,6 +837,12 @@ export default function App() {
 
         </div>
       )}
+
+      <div className="portrait-lock fixed inset-0 z-[9999] bg-[#1e222a] flex-col items-center justify-center gap-4" style={{ display: 'none' }}>
+        <div className="text-[#e5c07b] text-2xl font-black">📱</div>
+        <div className="text-[#abb2bf] text-sm font-bold">请竖屏使用</div>
+        <div className="text-gray-500 text-xs">Please rotate your device to portrait mode</div>
+      </div>
     </div>
   );
 }

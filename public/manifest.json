@@ -4,7 +4,7 @@
   "description": "Cloud Secret Agent Academy - 云端酒廊特调考核系统",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait-primary",
   "background_color": "#1e222a",
   "theme_color": "#1e222a",
   "icons": [
