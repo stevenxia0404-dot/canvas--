@@ -194,7 +194,7 @@ function BriefingModal({ onClose }) {
 // ==========================================
 // 组件：工具面板（关于 + 反馈）
 // ==========================================
-function UtilityPanel({ onClose }) {
+function UtilityPanel({ onClose, showToast }) {
   const [tab, setTab] = useState('about');
   const [fbName, setFbName] = useState('');
   const [fbMsg, setFbMsg] = useState('');
@@ -203,9 +203,13 @@ function UtilityPanel({ onClose }) {
   const handleFeedback = async () => {
     if (!fbMsg.trim()) return;
     try {
-      await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: fetchOpts.headers, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
+      const res = await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
+      if (!res.ok) throw new Error('Failed');
       setFbSent(true);
-    } catch (e) { /* silent */ }
+      showToast('✅ 反馈已提交', 'pass');
+    } catch (e) {
+      showToast('❌ 提交失败，请重试', 'fail');
+    }
   };
 
   const CHANGELOG = `v2.2 — 2026-06-24
@@ -354,7 +358,7 @@ ESTABLISHING SECURE UPLINK... DONE
     <div className="w-full max-w-4xl bg-[#131313] p-2 sm:p-4 md:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.9)] relative z-10 border-b-8 border-r-8 border-black flex flex-col h-[90vh]">
       <div className="bg-[#0a0a0a] w-full flex-grow rounded-2xl p-2 sm:p-4 md:p-6 lg:p-8 shadow-[inset_0_0_80px_rgba(0,0,0,1)] overflow-hidden relative border-4 border-gray-800 flex flex-col">
         <div className="absolute inset-0 pointer-events-none opacity-30 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px] z-40"></div>
-        <div className="relative z-20 text-[#abb2bf] whitespace-pre-wrap break-words text-xs sm:text-sm md:text-base lg:text-xl font-bold leading-relaxed tracking-wide flex-grow overflow-y-auto pr-2 custom-scrollbar text-left">
+        <div className="relative z-20 text-[#abb2bf] whitespace-pre-wrap break-words text-xs sm:text-sm md:text-base lg:text-xl font-bold leading-relaxed tracking-wide flex-grow overflow-y-auto pr-2 pb-4 custom-scrollbar text-left">
           <span dangerouslySetInnerHTML={formatText(terminalHistory)} />
           <span dangerouslySetInnerHTML={formatText(typingText.slice(0, typingIndex))} />
           
@@ -388,27 +392,25 @@ ESTABLISHING SECURE UPLINK... DONE
           <span className={`inline-block w-3 h-5 md:h-6 bg-[#abb2bf] align-middle shadow-[0_0_8px_rgba(171,178,191,0.6)] ${step === 1 || step === 4 || step === 6 ? 'animate-pulse' : ''}`}></span>
           <div ref={terminalEndRef} className="h-8"></div>
         </div>
-
-        <div className="absolute bottom-4 right-4 z-50 flex items-center gap-4">
-          {(step === 5 || step === 6) && (
-            <>
-              <div className="text-[#e06c75] text-lg md:text-2xl font-black animate-pulse bg-[#1e222a] px-4 py-2 border-2 border-gray-700 shadow-[4px_4px_0_#8c383e]">T-{countdown.toString().padStart(2, '0')}s</div>
-              <button onClick={() => onComplete(formData)} className="px-6 py-3 border-2 border-[#56b6c2] text-[#56b6c2] font-extrabold text-lg hover:bg-[#56b6c2] hover:text-black shadow-[4px_4px_0_#3a7a82] active:translate-y-1 active:shadow-none transition-all">[ 开始任务 / START ]</button>
-            </>
-          )}
-        </div>
       </div>
 
+      {(step === 5 || step === 6) && (
+        <div className="flex items-center justify-end gap-4 mt-2 shrink-0 px-4">
+          <div className="text-[#e06c75] text-base md:text-2xl font-black animate-pulse bg-[#1e222a] px-4 py-2 border-2 border-gray-700 shadow-[4px_4px_0_#8c383e]">T-{countdown.toString().padStart(2, '0')}s</div>
+          <button onClick={() => onComplete(formData)} className="px-6 py-3 border-2 border-[#56b6c2] text-[#56b6c2] font-extrabold text-base md:text-lg hover:bg-[#56b6c2] hover:text-black shadow-[4px_4px_0_#3a7a82] active:translate-y-1 active:shadow-none transition-all">[ 开始任务 / START ]</button>
+        </div>
+      )}
+
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[8px] sm:text-[9px]">云端特勤学院 · v2.2</span></div>
-        <div className="flex space-x-3 items-center">
-          <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
-          <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
-          <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
-            <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
-            <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
-            <span className="text-[#98c379] text-xs md:text-sm leading-none">●</span>
+        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[7px] sm:text-[9px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[7px] sm:text-[9px] hidden sm:inline">云端特勤学院 · v2.2</span></div>
+        <div className="flex gap-1 sm:gap-2 md:space-x-3 items-center shrink-0">
+          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
+          <div onClick={onSecretClick} className="flex gap-1 sm:gap-2 items-center cursor-default ml-1 sm:ml-2 shrink-0">
+            <span className="text-gray-500 text-[8px] sm:text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#e5c07b] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#98c379] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
                       </div>
         </div>
       </div>
@@ -448,7 +450,7 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
             ))}
           </div>
         </div>
-        <div className="relative z-20 flex-1 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-hidden">
+        <div className="relative z-20 flex-1 grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-y-auto custom-scrollbar">
           {filteredMissions.map((mission, index) => {
             const isFlipped = flippedMissions.includes(mission.id);
             const status = missionResults[mission.id];
@@ -481,15 +483,15 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
         </div>
       </div>
       <div className="mt-3 md:mt-4 flex justify-between items-center px-4 shrink-0 overflow-hidden">
-        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[9px] sm:text-[10px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[8px] sm:text-[9px]">云端特勤学院 · v2.2</span></div>
-        <div className="flex space-x-3 items-center">
-          <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
-          <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-          <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
-          <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default ml-2 shrink-0">
-            <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
-            <span className="text-[#e5c07b] text-xs md:text-sm leading-none">●</span>
-            <span className="text-[#98c379] text-xs md:text-sm leading-none">●</span>
+        <div className="text-[#e5c07b] font-extrabold tracking-widest text-[7px] sm:text-[9px] md:text-sm italic"><span className="text-[#98c379]/60 text-[7px] mr-1">●</span>CLOUD AGENT ACADEMY <span className="text-[#e5c07b]/60 ml-1 font-black text-[7px] sm:text-[9px] hidden sm:inline">云端特勤学院 · v2.2</span></div>
+        <div className="flex gap-1 sm:gap-2 md:space-x-3 items-center shrink-0">
+          <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+          <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+          <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
+          <div onClick={onSecretClick} className="flex gap-1 sm:gap-2 items-center cursor-default ml-1 sm:ml-2 shrink-0">
+            <span className="text-gray-500 text-[8px] sm:text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#e5c07b] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
+            <span className="text-[#98c379] text-[8px] sm:text-xs md:text-sm leading-none">●</span>
           </div>
         </div>
       </div>
@@ -508,6 +510,7 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
   const [isMixed, setIsMixed] = useState(false);
   const [stampStatus, setStampStatus] = useState(null);
   const [backConfirm, setBackConfirm] = useState(false);
+  const [showRuleTip, setShowRuleTip] = useState(false);
   const MAX_CAPACITY = 12;
   const filteredIngredients = INGREDIENTS.filter(i => i.category === 'all' || i.category === category);
 
@@ -561,7 +564,13 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
         <div className="flex items-center gap-2 md:gap-4">
           <button onClick={() => { if (backConfirm) { onBack(); } else if (glassContents.length > 0) { setBackConfirm(true); setTimeout(() => setBackConfirm(false), 3000); } else { onBack(); } }} className={`font-black hover:text-white transition-colors active:scale-95 text-xs sm:text-sm md:text-base ${backConfirm ? 'text-[#e5c07b] animate-pulse' : 'text-[#e06c75]'}`}>{backConfirm ? '[ 确认返回？再次点击 ]' : '[ < BACK ]'}</button>
           <span className="text-[#56b6c2] font-bold tracking-widest text-[8px] sm:text-[10px] md:text-sm uppercase truncate">TARGET: {activeMission.name}</span>
-          <button onClick={togglePanel} title="配方判定：载杯不限加入顺序，物料必须严格按序列添加" className="text-[#56b6c2] text-[10px] sm:text-xs font-black hover:text-white ml-1 shrink-0">[ ? ]</button>
+          <button onClick={() => setShowRuleTip(!showRuleTip)} title="配方判定：载杯不限加入顺序，物料必须严格按序列添加" className="text-[#56b6c2] text-[10px] sm:text-xs font-black hover:text-white ml-1 shrink-0 relative">[ ? ]
+            {showRuleTip && (
+              <div className="absolute top-full mt-1 -left-2 w-48 bg-[#1e222a] border border-[#56b6c2] rounded p-2 text-[10px] text-[#abb2bf] font-normal normal-case z-50 shadow-lg whitespace-normal leading-relaxed">
+                配方判定：载杯不限加入顺序，物料必须严格按序列添加。点击物料→入杯→MIX 混合→系统比对判定
+              </div>
+            )}
+          </button>
         </div>
         <div onClick={onSecretClick} className="flex gap-2 items-center cursor-default shrink-0">
           <span className="text-gray-500 text-xs md:text-sm leading-none">●</span>
@@ -621,10 +630,10 @@ function Workspace({ currentMission, onBack, onMissionComplete, isAudioOn, toggl
               <button onClick={handleShake} disabled={isShaking || isMixed || glassContents.length === 0} className="flex-1 bg-[#e06c75] text-white border-2 md:border-4 border-black py-2 sm:py-3 md:py-4 font-black text-xs sm:text-base md:text-xl rounded-lg shadow-[3px_3px_0_0_#8c383e] active:translate-x-px">MIX / 混合</button>
               <button onClick={()=>{setGlassContents([]);setIsMixed(false);setStampStatus(null);setResultMsg('已清空。')}} disabled={isShaking} className="flex-1 bg-[#e5c07b] text-black border-2 md:border-4 border-black py-2 sm:py-3 md:py-4 font-black text-xs sm:text-base md:text-xl rounded-lg shadow-[3px_3px_0_0_#9a8153] active:translate-x-px">TRASH / 清理</button>
             </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={toggleBriefing} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ 📜 简报 ]</button>
-              <button onClick={toggleAudio} className={`shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? '[ 🎵 ON ]' : '[ 🔇 OFF ]'}</button>
-              <button onClick={togglePanel} className="shrink-0 px-2 py-1 text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px">[ i ]</button>
+            <div className="flex justify-end gap-1 sm:gap-2">
+              <button onClick={toggleBriefing} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">📜</span><span className="hidden sm:inline">[ 📜 简报 ]</span></button>
+              <button onClick={toggleAudio} className={`px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#98c379] rounded active:translate-y-px ${isAudioOn ? 'shadow-[1px_1px_0_#3e4c36]' : 'opacity-50'}`}>{isAudioOn ? <><span className="sm:hidden">🎵</span><span className="hidden sm:inline">[ 🎵 ON ]</span></> : <><span className="sm:hidden">🔇</span><span className="hidden sm:inline">[ 🔇 OFF ]</span></>}</button>
+              <button onClick={togglePanel} className="px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold border border-gray-600 bg-gray-800 text-[#56b6c2] rounded shadow-[1px_1px_0_#2b5b61] active:translate-y-px"><span className="sm:hidden">i</span><span className="hidden sm:inline">[ i ]</span></button>
             </div>
           </div>
         </div>
@@ -805,7 +814,7 @@ export default function App() {
       </div>
 
       {showBriefing && <BriefingModal onClose={() => setShowBriefing(false)} />}
-      {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} />}
+      {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} showToast={showToast} />}
       
       {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
       {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
