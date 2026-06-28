@@ -24,7 +24,7 @@ const API_BASE = 'https://worker-api.boluomate.com';
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 const BANNER_VERSION = 'v2.2';
-const BANNER_MSG = '[ SYSTEM NOTICE ] 配方数据库 v2.2 — 新增 20-23 号客舱特调 · 反馈面板上线';
+const BANNER_MSG = '云端学院 v2.2\n\n· 新增反馈功能\n· 15 项 UI 服务组件优化\n· 精灵图扩容 43 图标，预加载秒出\n· 手机/平板强制竖屏，底部栏自适应\n· 4 款客舱特调（云上/海屿/橙C美式/菠萝气泡美式）';
 const fetchOpts = { headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY } };
 
 // 三击解锁管理后台 (防作弊)
@@ -805,9 +805,11 @@ export default function App() {
       `}} />
 
       {showBanner && (
-        <div className="absolute top-0 left-0 right-0 z-[150] bg-[#1e222a] border-b border-[#e5c07b]/30 text-[#e5c07b] text-[9px] sm:text-[10px] font-bold px-3 py-1 flex items-center justify-between">
-          <span>{BANNER_MSG}</span>
-          <button onClick={() => { setShowBanner(false); localStorage.setItem('bannerVersion', BANNER_VERSION); }} className="ml-2 text-[#e06c75] hover:text-white text-xs shrink-0">[ ✕ ]</button>
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#1e222a] border-2 border-[#e5c07b]/40 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_60px_rgba(0,0,0,0.8)] animate-[cert-pop_0.3s_ease-out]">
+            <div className="text-[#e5c07b] font-black text-sm tracking-widest mb-3 text-center whitespace-pre-line leading-relaxed">{BANNER_MSG}</div>
+            <button onClick={() => { setShowBanner(false); localStorage.setItem('bannerVersion', BANNER_VERSION); }} className="w-full bg-[#e5c07b] text-[#1e222a] border-b-4 border-[#9a8153] py-2 font-black text-sm rounded-lg active:translate-y-px active:border-b-2 transition-all">[ 确 认 ]</button>
+          </div>
         </div>
       )}
 
