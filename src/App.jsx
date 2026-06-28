@@ -837,6 +837,11 @@ export default function App() {
             <button onClick={()=>setCurrentView('workspace')} className="text-left hover:bg-white/10">&gt; NODE 3 (WORKSPACE)</button>
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
+            <div className="border-t border-gray-700 pt-2 mt-1">
+              <span className="text-[#56b6c2] text-[9px]">[ DATA ]</span>
+            </div>
+            <button onClick={()=>{window.open(`${API_BASE}/api/agents/export?key=${encodeURIComponent(API_KEY)}`,'_blank')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; DOWNLOAD CSV</button>
+            <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/feedback?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();const w=window.open('','_blank','width=700,height=500');w.document.write(`<html><head><meta charset=utf-8><title>Feedback</title><style>body{font-family:monospace;background:#131313;color:#abb2bf;padding:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3e4451;padding:6px 10px;font-size:12px;text-align:left}th{background:#1e222a;color:#e5c07b}tr:nth-child(even){background:#1e222a}</style></head><body><h2 style=color:#e5c07b>Feedback (${d.length})</h2><table><tr><th>ID</th><th>Name</th><th>Message</th><th>Time</th></tr>${d.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.message}</td><td>${r.created_at}</td></tr>`).join('')}</table></body></html>`);w.document.close()}catch(e){alert('Failed')}}} className="text-left text-[#56b6c2] hover:bg-white/10">&gt; VIEW FEEDBACK ({(()=>{try{return JSON.parse(localStorage.getItem('feedbacks')||'[]').length}catch{return 0}})()})</button>
 
 
         </div>
