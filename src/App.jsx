@@ -716,6 +716,7 @@ export default function App() {
   const [isPanelOpen, setPanelOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [showBanner, setShowBanner] = useState(() => localStorage.getItem('bannerVersion') !== BANNER_VERSION);
+  const [devData, setDevData] = useState(null);
 
   const [category, setCategory] = useState('bar');
   const audioRef = useRef(null);
@@ -839,16 +840,33 @@ export default function App() {
             <button onClick={()=>setCurrentView('workspace')} className="text-left hover:bg-white/10">&gt; NODE 3 (WORKSPACE)</button>
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
+            {devData ? (
+              <>
+                <div className="border-t border-gray-700 pt-2 mt-1 flex justify-between items-center">
+                  <span className="text-[#56b6c2] text-[9px]">[ {devData.title} ({devData.rows.length}) ]</span>
+                  <button onClick={()=>setDevData(null)} className="text-[#e06c75] text-[9px] hover:text-white">[ BACK ]</button>
+                </div>
+                <div className="overflow-auto max-h-40 custom-scrollbar">
+                  <table className="w-full text-[9px] border-collapse">
+                    <thead><tr>{devData.cols.map((c,i)=><th key={i} className="border border-[#3e4451] p-1 text-left text-[#e5c07b] sticky top-0 bg-black">{c}</th>)}</tr></thead>
+                    <tbody>{devData.rows.map((r,i)=><tr key={i} className={i%2?'bg-[#1e222a]':''}>{r.map((v,j)=><td key={j} className="border border-[#3e4451] p-1 whitespace-nowrap">{v}</td>)}</tr>)}</tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <>
             <div className="border-t border-gray-700 pt-2 mt-1">
               <span className="text-[#56b6c2] text-[9px]">[ DATA — AGENTS ]</span>
             </div>
-            <button onClick={async()=>{const w=window.open('','_blank','width=700,height=500');w.document.write('<html><head><meta charset=utf-8><title>Agents</title><style>body{font-family:monospace;background:#131313;color:#abb2bf;padding:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3e4451;padding:6px 10px;font-size:12px;text-align:left}th{background:#1e222a;color:#e5c07b}tr:nth-child(even){background:#1e222a}</style></head><body><p style=color:#e5c07b>Loading...</p></body></html>');w.document.close();try{const r=await fetch(`${API_BASE}/api/agents?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();w.document.write(`<html><head><meta charset=utf-8><title>Agents</title><style>body{font-family:monospace;background:#131313;color:#abb2bf;padding:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3e4451;padding:6px 10px;font-size:12px;text-align:left}th{background:#1e222a;color:#e5c07b}tr:nth-child(even){background:#1e222a}</style></head><body><h2 style=color:#e5c07b>Agents (${d.length})</h2><table><tr><th>ID</th><th>Name</th><th>EmpID</th><th>Dept</th><th>Time</th></tr>${d.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.emp_id}</td><td>${r.dept}</td><td>${r.created_at}</td></tr>`).join('')}</table></body></html>`);w.document.close()}catch(e){w.document.write('<html><body style=font-family:monospace;background:#131313;color:#e06c75;padding:20px><p>Failed</p></body></html>');w.document.close()}}} className="text-left text-[#e5c07b] hover:bg-white/10">&gt; VIEW</button>
+            <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();setDevData({title:'AGENTS',cols:['ID','Name','EmpID','Dept','Time'],rows:d.map(r=>[r.id,r.name,r.emp_id,r.dept,r.created_at])})}catch(e){alert('Failed')}}} className="text-left text-[#e5c07b] hover:bg-white/10">&gt; VIEW</button>
             <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/agents/export?key=${encodeURIComponent(API_KEY)}`);const t=await r.text();const blob=new Blob([t],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='agents.csv';a.click();URL.revokeObjectURL(a.href)}catch(e){alert('Download failed')}}} className="text-left text-[#98c379] hover:bg-white/10">&gt; DOWNLOAD</button>
-            <div class="border-t border-gray-700 pt-2 mt-1">
-              <span class="text-[#56b6c2] text-[9px]">[ DATA — FEEDBACK ]</span>
+            <div className="border-t border-gray-700 pt-2 mt-1">
+              <span className="text-[#56b6c2] text-[9px]">[ DATA — FEEDBACK ]</span>
             </div>
-            <button onClick={async()=>{const w=window.open('','_blank','width=700,height=500');w.document.write('<html><head><meta charset=utf-8><title>Feedback</title><style>body{font-family:monospace;background:#131313;color:#abb2bf;padding:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3e4451;padding:6px 10px;font-size:12px;text-align:left}th{background:#1e222a;color:#e5c07b}tr:nth-child(even){background:#1e222a}</style></head><body><p style=color:#e5c07b>Loading...</p></body></html>');w.document.close();try{const r=await fetch(`${API_BASE}/api/feedback?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();w.document.write(`<html><head><meta charset=utf-8><title>Feedback</title><style>body{font-family:monospace;background:#131313;color:#abb2bf;padding:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3e4451;padding:6px 10px;font-size:12px;text-align:left}th{background:#1e222a;color:#e5c07b}tr:nth-child(even){background:#1e222a}</style></head><body><h2 style=color:#e5c07b>Feedback (${d.length})</h2><table><tr><th>ID</th><th>Name</th><th>Message</th><th>Time</th></tr>${d.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.message}</td><td>${r.created_at}</td></tr>`).join('')}</table></body></html>`);w.document.close()}catch(e){w.document.write('<html><body style=font-family:monospace;background:#131313;color:#e06c75;padding:20px><p>Failed to load feedback</p></body></html>');w.document.close()}}} className="text-left text-[#e5c07b] hover:bg-white/10">&gt; VIEW</button>
+            <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/feedback?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();setDevData({title:'FEEDBACK',cols:['ID','Name','Message','Time'],rows:d.map(r=>[r.id,r.name,r.message,r.created_at])})}catch(e){alert('Failed')}}} className="text-left text-[#e5c07b] hover:bg-white/10">&gt; VIEW</button>
             <button onClick={async()=>{try{const r=await fetch(`${API_BASE}/api/feedback?key=${encodeURIComponent(API_KEY)}`);const d=await r.json();const lines=['id,name,message,created_at'];d.forEach(r=>{lines.push(r.id+',\"'+r.name+'\",\"'+r.message+'\",\"'+r.created_at+'\"')});const csv=String.fromCharCode(0xFEFF)+lines.join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='feedback.csv';a.click();URL.revokeObjectURL(a.href)}catch(e){alert('Download failed')}}} className="text-left text-[#98c379] hover:bg-white/10">&gt; DOWNLOAD</button>
+              </>
+            )}
 
 
         </div>
