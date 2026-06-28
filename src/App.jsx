@@ -194,27 +194,18 @@ function BriefingModal({ onClose }) {
 // ==========================================
 // 组件：工具面板（关于 + 反馈）
 // ==========================================
-function UtilityPanel({ onClose, showToast }) {
+function UtilityPanel({ onClose }) {
   const [tab, setTab] = useState('about');
   const [fbName, setFbName] = useState('');
   const [fbMsg, setFbMsg] = useState('');
   const [fbSent, setFbSent] = useState(false);
-  const [fbSending, setFbSending] = useState(false);
 
-  const handleFeedback = async () => {
-    if (!fbMsg.trim() || fbSending) return;
-    setFbSending(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      setFbSent(true);
-      showToast('✅ 反馈已提交', 'pass');
-    } catch (e) {
-      showToast(`❌ ${e.message}`, 'fail');
-    } finally {
-      setFbSending(false);
-    }
+  const handleFeedback = () => {
+    if (!fbMsg.trim()) return;
+    const fb = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+    fb.push({ name: fbName || '匿名', message: fbMsg.trim(), time: new Date().toISOString() });
+    localStorage.setItem('feedbacks', JSON.stringify(fb));
+    setFbSent(true);
   };
 
   const CHANGELOG = `v2.2 — 2026-06-24
@@ -264,7 +255,7 @@ function UtilityPanel({ onClose, showToast }) {
                 <>
                   <input value={fbName} onChange={e => setFbName(e.target.value)} placeholder="昵称（选填）" className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600" maxLength={30} />
                   <textarea value={fbMsg} onChange={e => setFbMsg(e.target.value)} placeholder="留言..." rows={4} className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600 resize-none" maxLength={500} />
-                  <button onClick={handleFeedback} disabled={!fbMsg.trim() || fbSending} className="w-full bg-[#98c379] text-[#131313] border-b-4 border-[#689d4a] py-2 font-black text-xs rounded active:translate-y-px active:border-b-2 disabled:opacity-40 transition-all">{fbSending ? '[ 提交中... ]' : '[ 提交反馈 ]'}</button>
+                  <button onClick={handleFeedback} disabled={!fbMsg.trim()} className="w-full bg-[#98c379] text-[#131313] border-b-4 border-[#689d4a] py-2 font-black text-xs rounded active:translate-y-px active:border-b-2 disabled:opacity-40 transition-all">[ 提交反馈 ]</button>
                 </>
               )}
             </div>
@@ -820,7 +811,7 @@ export default function App() {
       </div>
 
       {showBriefing && <BriefingModal onClose={() => setShowBriefing(false)} />}
-      {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} showToast={showToast} />}
+      {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} />}
       
       {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
       {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
