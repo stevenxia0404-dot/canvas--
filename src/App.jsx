@@ -216,13 +216,15 @@ function UtilityPanel({ onClose, showToast }) {
     }
   };
 
-  const CHANGELOG = `v2.2 — 2026-06-24
+  const CHANGELOG = `v2.2 — 2026-06-28
+· 新增反馈功能 [ i ]
+· 15 项 UI 服务组件优化（横幅/Toast/进度条/确认/规则提示等）
+· 精灵图扩容至 43 图标，预加载秒出
+· 手机/平板强制竖屏，底部栏自适应，卡片布局优化
+· 倒计时修复（打字完成后再启动）
 · 新增 4 款客舱特调（云上/海屿/橙C美式/菠萝气泡美式）
 · 简报全部 23 款饮品加英文名
-· CSS Sprite 回退机制 + 3 种新物料图标
-· 新增反馈与关于面板 [ i ]
-· 品牌名统一：CLOUD AGENT ACADEMY / 云端特勤学院
-· 倒计时修复（打字完成后再启动）`;
+· 品牌名统一：CLOUD AGENT ACADEMY / 云端特勤学院`;
 
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
