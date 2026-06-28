@@ -1,10 +1,11 @@
-const CACHE_VERSION = 'v2.1-20260604';
+const CACHE_VERSION = 'v2.2-20260628';
 const CACHE_NAME = `canvas-academy-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   '/favicon.svg',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/assets/icons.webp',
 ];
 
 self.addEventListener('install', (event) => {
