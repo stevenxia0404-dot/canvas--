@@ -206,11 +206,12 @@ function UtilityPanel({ onClose, showToast }) {
     setFbSending(true);
     try {
       const res = await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
-      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       setFbSent(true);
       showToast('✅ 反馈已提交', 'pass');
     } catch (e) {
-      showToast('❌ 提交失败，请重试', 'fail');
+      showToast(`❌ ${e.message}`, 'fail');
     } finally {
       setFbSending(false);
     }
