@@ -833,7 +833,7 @@ export default function App() {
         <div className="fixed bottom-10 right-4 z-[999] bg-black border border-red-500 p-3 rounded text-[10px] text-white font-mono shadow-2xl flex flex-col gap-2 max-h-[80vh] overflow-auto">
             <div className="flex justify-between border-b border-red-900 pb-1 mb-1">
                <span className="text-red-500">DEBUG CONSOLE</span>
-               <button onClick={closeDev} className="bg-red-900 px-1 rounded hover:bg-red-500">X</button>
+               <button onClick={()=>{setDevData(null);closeDev()}} className="bg-red-900 px-1 rounded hover:bg-red-500">X</button>
             </div>
             <button onClick={()=>setCurrentView('terminal')} className="text-left hover:bg-white/10">&gt; NODE 1 (LOGIN)</button>
             <button onClick={()=>setCurrentView('mission_hall')} className="text-left hover:bg-white/10">&gt; NODE 2 (HALL)</button>
