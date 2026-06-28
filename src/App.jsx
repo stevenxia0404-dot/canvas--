@@ -794,7 +794,7 @@ export default function App() {
         .perspective { perspective: 1000px; } .preserve-3d { transform-style: preserve-3d; } .backface-hidden { backface-visibility: hidden; } .rotate-y-180 { transform: rotateY(180deg); }
         @keyframes toast-in { 0%{transform:translateX(100%);opacity:0} 100%{transform:translateX(0);opacity:1} }
         .toast-in { animation: toast-in 0.25s ease-out forwards; }
-        @media (max-width: 1023px) and (orientation: landscape) { .portrait-lock { display: flex !important; } .portrait-hide { display: none !important; } }
+        @media (max-width: 1366px) and (orientation: landscape) { .portrait-lock { display: flex !important; } .portrait-hide { display: none !important; } }
       `}} />
 
       {showBanner && (
