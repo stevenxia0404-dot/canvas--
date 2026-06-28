@@ -20,7 +20,7 @@ function spriteStyle(id) {
 }
 
 // Cloudflare Worker API (部署后替换为实际 URL)
-const API_BASE = 'https://canvas-academy-api.stevenxia0404.workers.dev';
+const API_BASE = 'https://worker-api.boluomate.com';
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 const BANNER_VERSION = 'v2.2';
