@@ -199,9 +199,11 @@ function UtilityPanel({ onClose, showToast }) {
   const [fbName, setFbName] = useState('');
   const [fbMsg, setFbMsg] = useState('');
   const [fbSent, setFbSent] = useState(false);
+  const [fbSending, setFbSending] = useState(false);
 
   const handleFeedback = async () => {
-    if (!fbMsg.trim()) return;
+    if (!fbMsg.trim() || fbSending) return;
+    setFbSending(true);
     try {
       const res = await fetch(`${API_BASE}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fbName || '匿名', message: fbMsg }) });
       if (!res.ok) throw new Error('Failed');
@@ -209,6 +211,8 @@ function UtilityPanel({ onClose, showToast }) {
       showToast('✅ 反馈已提交', 'pass');
     } catch (e) {
       showToast('❌ 提交失败，请重试', 'fail');
+    } finally {
+      setFbSending(false);
     }
   };
 
@@ -245,8 +249,8 @@ function UtilityPanel({ onClose, showToast }) {
               </div>
               <div className="border-t border-[#3e4451] pt-3">
                 <div className="text-[#56b6c2] text-[10px] tracking-widest mb-1 uppercase">[ CONTACT / 联系 ]</div>
-                <div className="text-gray-500 text-[10px] leading-relaxed">📧 xiaxiaolei@ceair.com</div>
-                <div className="text-gray-500 text-[10px] leading-relaxed">💬 MUC: xiaxiaolei</div>
+                <div className="text-gray-500 text-[10px] leading-relaxed">📧 XIAXIAOLEI@CEAIR.COM</div>
+                <div className="text-gray-500 text-[10px] leading-relaxed">💬 MUC: XIAXIAOLEI</div>
               </div>
             </div>
           )}
@@ -259,7 +263,7 @@ function UtilityPanel({ onClose, showToast }) {
                 <>
                   <input value={fbName} onChange={e => setFbName(e.target.value)} placeholder="昵称（选填）" className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600" maxLength={30} />
                   <textarea value={fbMsg} onChange={e => setFbMsg(e.target.value)} placeholder="留言..." rows={4} className="w-full bg-[#0a0a0a] border-2 border-[#3e4451] rounded px-3 py-1.5 text-xs text-[#abb2bf] outline-none focus:border-[#56b6c2] placeholder:text-gray-600 resize-none" maxLength={500} />
-                  <button onClick={handleFeedback} disabled={!fbMsg.trim()} className="w-full bg-[#98c379] text-[#131313] border-b-4 border-[#689d4a] py-2 font-black text-xs rounded active:translate-y-px active:border-b-2 disabled:opacity-40 transition-all">[ 提交反馈 ]</button>
+                  <button onClick={handleFeedback} disabled={!fbMsg.trim() || fbSending} className="w-full bg-[#98c379] text-[#131313] border-b-4 border-[#689d4a] py-2 font-black text-xs rounded active:translate-y-px active:border-b-2 disabled:opacity-40 transition-all">{fbSending ? '[ 提交中... ]' : '[ 提交反馈 ]'}</button>
                 </>
               )}
             </div>
