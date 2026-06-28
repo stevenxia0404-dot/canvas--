@@ -49,7 +49,7 @@ export default {
       const rows = results.map(r =>
         `${r.id},"${r.name}","${r.emp_id}","${r.dept}","${r.created_at}"`
       );
-      const csv = [header, ...rows].join('\n');
+      const csv = '﻿' + [header, ...rows].join('\n');
       return new Response(csv, {
         headers: {
           ...corsHeaders,
