@@ -28,7 +28,7 @@ export default {
           return Response.json({ error: 'Message required' }, { status: 400, headers: corsHeaders });
         }
         await env.DB.prepare(
-          'INSERT INTO feedback (name, message) VALUES (?, ?)'
+          'INSERT INTO feedback (name, message, created_at) VALUES (?, ?, datetime(\'now\', \'+8 hours\'))'
         ).bind(name || '匿名', message.trim()).run();
         return Response.json({ success: true }, { headers: corsHeaders });
       } catch (e) {
