@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云端特勤局学院 · 产品体验演示</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+:root {
+  --bg: #0D1117; --card: #161B22;
+  --cyan: #56B6C2; --gold: #E5C07B; --green: #98C379; --red: #E06C75;
+  --white: #FFFFFF; --gray: #ABB2BF; --muted: #6B7280;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg); color: var(--gray); overflow-x: hidden;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.section {
+  min-height: 100vh; scroll-snap-align: center;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; padding: 2rem;
+}
+
+.scanlines::after {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* ── Keyframes ── */
+@keyframes glitch { 0%,100%{transform:translate(0)} 20%{transform:translate(-2px,2px)} 40%{transform:translate(-2px,-2px)} 60%{transform:translate(2px,2px)} 80%{transform:translate(2px,-2px)} }
+.glitch { animation: glitch 0.3s ease-in-out; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor::after { content:'▊'; animation:blink 1s step-end infinite; color:var(--cyan); }
+.cursor-done::after { content:''; animation:none; }
+
+/* 3D Flip */
+.card-flip { perspective: 800px; }
+.card-flip-inner { position:relative; width:100%; height:100%; transition:transform 0.8s cubic-bezier(0.4,0,0.2,1); transform-style:preserve-3d; }
+.card-flip-inner.flipped { transform:rotateY(180deg); }
+.card-front,.card-back { position:absolute; inset:0; backface-visibility:hidden; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.card-back { transform:rotateY(180deg); }
+
+@keyframes pourIn { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.pour { animation:pourIn 0.4s ease-out forwards; }
+@keyframes stampDown { 0%{transform:scale(3) rotate(-15deg);opacity:0} 60%{transform:scale(0.9) rotate(2deg);opacity:1} 80%{transform:scale(1.05) rotate(-1deg)} 100%{transform:scale(1) rotate(-8deg);opacity:0.85} }
+.stamp { animation:stampDown 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+@keyframes passFlash { 0%{opacity:0;transform:scale(0.5)} 50%{opacity:1;transform:scale(1.1)} 100%{opacity:0;transform:scale(1.5)} }
+.pass-flash { animation:passFlash 1.5s ease-out forwards; }
+
+/* ── New premium animations ── */
+@keyframes countUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.count-up { animation:countUp 0.6s ease-out forwards; }
+@keyframes slideInLeft { from{opacity:0;transform:translateX(-60px)} to{opacity:1;transform:translateX(0)} }
+.slide-left { animation:slideInLeft 0.8s ease-out forwards; }
+@keyframes slideInRight { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+.slide-right { animation:slideInRight 0.8s ease-out forwards; }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation:fadeInUp 0.7s ease-out forwards; }
+@keyframes scaleIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+.scale-in { animation:scaleIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+@keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(86,182,194,0.4)} 70%{box-shadow:0 0 0 20px rgba(86,182,194,0)} 100%{box-shadow:0 0 0 0 rgba(86,182,194,0)} }
+.pulse-ring { animation:pulse-ring 2s ease-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.float { animation:float 3s ease-in-out infinite; }
+@keyframes signalPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+.sig1{animation:signalPulse 2s ease-in-out infinite} .sig2{animation:signalPulse 2s ease-in-out 0.3s infinite} .sig3{animation:signalPulse 2s ease-in-out 0.6s infinite}
+@keyframes glowPulse { 0%,100%{text-shadow:0 0 20px rgba(86,182,194,0.3)} 50%{text-shadow:0 0 40px rgba(86,182,194,0.8),0 0 80px rgba(86,182,194,0.4)} }
+.glow-text { animation:glowPulse 3s ease-in-out infinite; }
+@keyframes drawLine { from{width:0} to{width:100%} }
+.draw-line { animation:drawLine 1.2s ease-out forwards; overflow:hidden; white-space:nowrap; }
+@keyframes particleFloat { 0%{transform:translateY(100vh) scale(0);opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{transform:translateY(-10vh) scale(1);opacity:0} }
+.particle { position:fixed; pointer-events:none; z-index:0; animation:particleFloat linear infinite; }
+
+/* Scroll reveal */
+.reveal { opacity:0; transform:translateY(40px); transition:opacity 0.8s ease, transform 0.8s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+.boot-line { opacity:0; }
+.boot-line.show { opacity:1; transition:opacity 0.1s; }
+
+.nav-dot { transition:all 0.3s; }
+.nav-dot.active { background:var(--cyan); transform:scale(1.5); }
+
+/* Stat counters */
+.stat-number { font-variant-numeric:tabular-nums; }
+
+/* ── Responsive ── */
+@media (max-width: 639px) {
+  .section { padding:1rem 0.75rem; min-height:auto; padding-top:3rem; padding-bottom:3rem; }
+  #s0 .mono { font-size:8px !important; line-height:1.4 !important; }
+  #s0 .mono div { word-break:break-all; }
+  .nav-dot { width:6px; height:6px; }
+  nav.fixed { right:4px; gap:4px; }
+  #cards-grid .card-flip { min-height:110px; }
+  .card-front .mono.text-lg{font-size:0.9rem!important} .card-front .mono.text-2xl{font-size:1.1rem!important}
+  .card-back .font-bold{font-size:9px!important} .card-back [data-en]{font-size:7px!important}
+  #ingredient-grid{grid-template-columns:repeat(3,1fr)!important}
+  #ingredient-grid button{padding:3px 2px;font-size:8px}
+  #cert-stamp .w-28{width:4rem;height:4rem} #cert-stamp .text-5xl{font-size:1.25rem!important} #cert-stamp .border-4{border-width:2px}
+  #qrcode canvas,#qrcode img{width:110px!important;height:110px!important}
+  .pass-flash .text-6xl{font-size:2.5rem!important} .pass-flash .text-9xl{font-size:3rem!important}
+}
+@media (min-width:640px) and (max-width:1023px) {
+  .section{padding:2rem 1.5rem}
+  #cards-grid .card-flip{min-height:140px}
+}
+</style>
+</head>
+<body class="scanlines">
+
+<!-- Floating particles (subtle ambient) -->
+<div id="particles"></div>
+
+<!-- Fixed nav dots -->
+<nav class="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 sm:gap-3" id="nav-dots">
+  <!-- filled by JS -->
+</nav>
+
+<!-- ═══════════════════════════════════════════
+  S00 — Boot Sequence
+  ═══════════════════════════════════════════ -->
+<section class="section relative overflow-hidden" id="s0">
+  <div class="absolute inset-0 bg-gradient-to-b from-[#0a0f14] to-[#0D1117] z-0"></div>
+  <div class="absolute inset-0 z-0" style="background:radial-gradient(ellipse at center, rgba(86,182,194,0.05) 0%, transparent 70%);"></div>
+  <div class="relative z-10 w-full max-w-2xl">
+    <div class="mono text-[#56b6c2] text-xs sm:text-sm leading-relaxed" id="boot-log"></div>
+    <div class="mt-8 text-center hidden" id="boot-done">
+      <div class="text-[#98c379] text-2xl sm:text-4xl font-black mono glitch mb-4">SYSTEM ONLINE</div>
+      <div class="text-[#6B7280] text-sm mono">SCROLL OR SWIPE TO CONTINUE</div>
+      <div class="mt-4 text-[#56b6c2] text-2xl animate-bounce">▼</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S01 — 一句话定位 + 项目概述
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="w-full max-w-4xl text-center">
+    <div class="reveal mb-6">
+      <div class="inline-block px-4 py-1.5 border border-[#E5C07B]/40 rounded-full text-[#E5C07B] text-xs mono mb-6">PROJECT OVERVIEW</div>
+      <h2 class="text-[#E5C07B] text-4xl sm:text-6xl font-black tracking-widest mono glow-text">云端特勤学院</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-6 mb-6"></div>
+      <p class="text-[#ABB2BF] text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+        将枯燥的配方记忆，变成<span class="text-[#56b6c2] font-bold">沉浸式特工闯关游戏</span>
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto mt-10">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#56b6c2] text-3xl sm:text-4xl font-black mono stat-number" data-target="23">0</div>
+        <div class="text-[#6B7280] text-xs mt-2">饮品配方</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#98C379] text-3xl sm:text-4xl font-black mono stat-number" data-target="43">0</div>
+        <div class="text-[#6B7280] text-xs mt-2">物料种类</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#E5C07B] text-3xl sm:text-4xl font-black mono stat-number" data-target="2">0</div>
+        <div class="text-[#6B7280] text-xs mt-2">品类覆盖</div>
+      </div>
+    </div>
+
+    <div class="reveal mt-8 text-[#6B7280] text-sm">
+      PWA 全平台 · iPhone / iPad / Android / 桌面 · academy.boluomate.com
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S02 — 核心亮点 2×2
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">KEY HIGHLIGHTS</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">核心亮点</h2>
+      <div class="w-20 h-0.5 bg-[#E5C07B] mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 hover:border-[#98C379] transition-all group">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#98C379]/20 flex items-center justify-center text-[#98C379] text-xl shrink-0 group-hover:scale-110 transition-transform">◆</div>
+          <div>
+            <div class="text-[#98C379] font-bold text-lg mb-1">业务价值</div>
+            <div class="text-[#6B7280] text-sm leading-relaxed">将枯燥的配方记忆变成沉浸式闯关，提升培训完成率和配方掌握度</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 hover:border-[#56b6c2] transition-all group">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#56b6c2]/20 flex items-center justify-center text-[#56b6c2] text-xl shrink-0 group-hover:scale-110 transition-transform">◆</div>
+          <div>
+            <div class="text-[#56b6c2] font-bold text-lg mb-1">技术特点</div>
+            <div class="text-[#6B7280] text-sm leading-relaxed">PWA 离线可用、移动端优先、无需安装、扫码即用，一个版本覆盖全设备</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 hover:border-[#E5C07B] transition-all group">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#E5C07B]/20 flex items-center justify-center text-[#E5C07B] text-xl shrink-0 group-hover:scale-110 transition-transform">◆</div>
+          <div>
+            <div class="text-[#E5C07B] font-bold text-lg mb-1">设计风格</div>
+            <div class="text-[#6B7280] text-sm leading-relaxed">复古终端 + 军事情报美学，从命名到交互全程统一品牌调性</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 hover:border-[#E06C75] transition-all group">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#E06C75]/20 flex items-center justify-center text-[#E06C75] text-xl shrink-0 group-hover:scale-110 transition-transform">◆</div>
+          <div>
+            <div class="text-[#E06C75] font-bold text-lg mb-1">数据闭环</div>
+            <div class="text-[#6B7280] text-sm leading-relaxed">学员操作数据回传云端，支持考核结果追踪、反馈收集与 CSV 导出</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S03 — 痛点场景
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#E06C75]/40 rounded-full text-[#E06C75] text-xs mono mb-6">THE PROBLEM</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">三万英尺的挑战</h2>
+      <div class="w-20 h-0.5 bg-[#E06C75] mx-auto mt-4"></div>
+    </div>
+
+    <div class="reveal bg-[#161B22] border-l-4 border-[#E5C07B] rounded-r-lg p-4 sm:p-6 mb-8 max-w-2xl mx-auto">
+      <p class="text-[#E5C07B] text-sm sm:text-base italic">
+        空中飞行旅客点餐，乘务员凭模糊记忆调配饮品——状况百出。
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#E06C75] text-2xl mb-3">📋</div>
+        <div class="text-white font-bold mb-2">纸质配方手册</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">翻烂了也记不住<br>无法实操练习<br>学完就忘</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#E06C75] text-2xl mb-3">🏫</div>
+        <div class="text-white font-bold mb-2">线下集中培训</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">成本高、排期难<br>无法个性化辅导<br>效果难追踪</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center">
+        <div class="text-[#E06C75] text-2xl mb-3">📊</div>
+        <div class="text-white font-bold mb-2">无量化考核</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">培训部不知道<br>谁真正掌握<br>谁在蒙混过关</div>
+      </div>
+    </div>
+
+    <div class="reveal text-center mt-8">
+      <div class="inline-block px-6 py-2 bg-[#98C379]/10 border border-[#98C379]/40 rounded text-[#98C379] text-sm">
+        解决方案：把配方记忆变成「闯关游戏」，数据追踪通关率
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S04 — 核心玩法流程
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="w-full max-w-5xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">HOW IT WORKS</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">特勤任务四部曲</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
+      <div class="reveal bg-[#161B22] border-t-4 border-[#56b6c2] rounded-lg p-5 text-center relative">
+        <div class="text-[#56b6c2] text-4xl font-black mono mb-3">01</div>
+        <div class="text-white font-bold mb-2">终端登录</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">特勤风格打字机动画<br>输入姓名/工号/部门<br>完成身份认证</div>
+      </div>
+      <div class="reveal bg-[#161B22] border-t-4 border-[#E5C07B] rounded-lg p-5 text-center">
+        <div class="text-[#E5C07B] text-4xl font-black mono mb-3">02</div>
+        <div class="text-white font-bold mb-2">任务大厅</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">23款配方卡片翻牌揭晓<br>逐关解锁，进度条追踪<br>机密档案风格呈现</div>
+      </div>
+      <div class="reveal bg-[#161B22] border-t-4 border-[#98C379] rounded-lg p-5 text-center">
+        <div class="text-[#98C379] text-4xl font-black mono mb-3">03</div>
+        <div class="text-white font-bold mb-2">调制台</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">43种物料选杯+加料<br>MIX 混合→即时判定<br>PASS / FAIL 即时反馈</div>
+      </div>
+      <div class="reveal bg-[#161B22] border-t-4 border-[#E06C75] rounded-lg p-5 text-center">
+        <div class="text-[#E06C75] text-4xl font-black mono mb-3">04</div>
+        <div class="text-white font-bold mb-2">毕业证书</div>
+        <div class="text-[#6B7280] text-xs leading-relaxed">全部通关后颁发证书<br>ELITE / PROFICIENT<br>/ QUALIFIED 三级评定</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S05 — 技术架构
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="w-full max-w-3xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">TECH STACK</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">技术架构</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="reveal bg-[#161B22] border-l-4 border-[#56b6c2] rounded-r-lg p-5">
+        <div class="text-[#56b6c2] font-bold mono text-sm mb-1">FRONTEND · PWA</div>
+        <div class="text-[#ABB2BF] text-sm">React 19 + Vite 8 + Tailwind CSS 4</div>
+        <div class="text-[#6B7280] text-xs mt-1">Service Worker 离线缓存 · PWA 全屏运行 · 移动端强制竖屏</div>
+        <div class="text-[#E5C07B] text-xs mt-1 mono">→ academy.boluomate.com (Cloudflare Pages)</div>
+      </div>
+      <div class="reveal bg-[#161B22] border-l-4 border-[#E5C07B] rounded-r-lg p-5">
+        <div class="text-[#E5C07B] font-bold mono text-sm mb-1">BACKEND · SERVERLESS</div>
+        <div class="text-[#ABB2BF] text-sm">Cloudflare Workers + D1 (SQLite)</div>
+        <div class="text-[#6B7280] text-xs mt-1">学员数据上报 · 反馈收集 · CSV 导出</div>
+        <div class="text-[#E5C07B] text-xs mt-1 mono">→ worker-api.boluomate.com</div>
+      </div>
+      <div class="reveal bg-[#161B22] border-l-4 border-[#98C379] rounded-r-lg p-5">
+        <div class="text-[#98C379] font-bold mono text-sm mb-1">DEVOPS</div>
+        <div class="text-[#ABB2BF] text-sm">GitHub 版本管理 · Wrangler CLI · Cloudflare Pages 自动部署 · Web Analytics</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S06 — 为什么是 PWA
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">WHY PWA</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">为什么是 PWA？</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#56b6c2] transition-all group">
+        <div class="text-[#56b6c2] font-bold mb-2 group-hover:translate-x-1 transition-transform">📱 零安装</div>
+        <div class="text-[#6B7280] text-xs">扫码即用，无需应用商店审批，IT 部门零负担</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#E5C07B] transition-all group">
+        <div class="text-[#E5C07B] font-bold mb-2 group-hover:translate-x-1 transition-transform">🌐 跨平台</div>
+        <div class="text-[#6B7280] text-xs">一个代码库覆盖 iOS + Android + 桌面，无需多端维护</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#98C379] transition-all group">
+        <div class="text-[#98C379] font-bold mb-2 group-hover:translate-x-1 transition-transform">✈️ 离线可用</div>
+        <div class="text-[#6B7280] text-xs">Service Worker 缓存全资源，飞机上断网照样练习</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#56b6c2] transition-all group">
+        <div class="text-[#56b6c2] font-bold mb-2 group-hover:translate-x-1 transition-transform">🔄 自动更新</div>
+        <div class="text-[#6B7280] text-xs">刷新即最新版，不存在用户不升级的碎片化问题</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#E5C07B] transition-all group">
+        <div class="text-[#E5C07B] font-bold mb-2 group-hover:translate-x-1 transition-transform">📦 体积小</div>
+        <div class="text-[#6B7280] text-xs">全应用缓存约 2-3MB，原生 App 动辄 50MB+</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 hover:border-[#98C379] transition-all group">
+        <div class="text-[#98C379] font-bold mb-2 group-hover:translate-x-1 transition-transform">🖥 全屏体验</div>
+        <div class="text-[#6B7280] text-xs">添加到桌面后和原生 App 完全一致，独立运行</div>
+      </div>
+    </div>
+
+    <div class="reveal text-center mt-8">
+      <div class="inline-block px-6 py-2 bg-[#E5C07B]/10 border border-[#E5C07B]/40 rounded text-[#E5C07B] text-sm">
+        唯一能以「一个版本」覆盖所有设备、且能在客舱无网环境下运行的技术方案
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S07 — Terminal Login (DEMO)
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="w-full max-w-3xl">
+    <div class="reveal text-center mb-6">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">LIVE DEMO · NODE 01</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">身份认证</h2>
+      <div class="w-16 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 sm:p-10 max-w-lg mx-auto shadow-2xl">
+      <div class="flex gap-2 mb-6">
+        <div class="w-3 h-3 rounded-full bg-[#E06C75]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#E5C07B]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#98C379]"></div>
+      </div>
+      <div class="mono text-[#ABB2BF] text-xs sm:text-sm leading-relaxed">
+        <div class="text-[#56b6c2] mb-2 cursor" id="login-line1"></div>
+        <div class="text-[#6B7280] mt-4 hidden" id="login-line2">
+          > 欢迎来到云端特勤学院终端。<br>
+          > 请输入你的特工身份信息以继续。
+        </div>
+      </div>
+      <div class="mt-6 space-y-3 hidden" id="login-form">
+        <div class="flex items-center gap-3 mono text-xs sm:text-sm">
+          <span class="text-[#56b6c2] w-16 sm:w-20">NAME:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#E5C07B] py-1 font-bold">ZHANG WEI</div>
+        </div>
+        <div class="flex items-center gap-3 mono text-xs sm:text-sm">
+          <span class="text-[#56b6c2] w-16 sm:w-20">EMP ID:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#98C379] py-1 font-bold">MU-8823</div>
+        </div>
+        <div class="flex items-center gap-3 mono text-xs sm:text-sm">
+          <span class="text-[#56b6c2] w-16 sm:w-20">DEPT:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#98C379] py-1 font-bold">客舱服务部</div>
+        </div>
+        <div class="mt-6 text-center">
+          <div class="inline-block px-8 py-3 border-2 border-[#56b6c2] text-[#56b6c2] font-extrabold mono text-base sm:text-lg cursor-pointer hover:bg-[#56b6c2] hover:text-[#0D1117] transition-all pulse-ring">
+            [ START MISSION ]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S08 — Mission Hall (DEMO)
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="w-full max-w-5xl">
+    <div class="reveal text-center mb-6">
+      <div class="inline-block px-4 py-1.5 border border-[#E5C07B]/40 rounded-full text-[#E5C07B] text-xs mono mb-6">LIVE DEMO · NODE 02</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">任务大厅</h2>
+      <div class="w-16 h-0.5 bg-[#E5C07B] mx-auto mt-4"></div>
+      <p class="text-[#6B7280] text-sm mt-4">23 款饮品配方 · 卡片翻牌揭晓 · 逐关解锁</p>
+    </div>
+
+    <div class="reveal mb-6 max-w-2xl mx-auto">
+      <div class="mono text-xs text-[#6B7280] mb-2">MISSION PROGRESS: 17 / 23</div>
+      <div class="h-3 bg-[#161B22] border border-[#30363D] rounded overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-[#98C379] to-[#56b6c2] transition-all duration-1000" style="width:74%"></div>
+      </div>
+      <div class="flex justify-between mono text-[10px] text-[#6B7280] mt-1">
+        <span>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░</span><span>74%</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 max-w-4xl mx-auto">
+      <template id="card-tpl">
+        <div class="card-flip cursor-pointer reveal" style="aspect-ratio:3/4">
+          <div class="card-flip-inner w-full h-full">
+            <div class="card-front bg-[#161B22] border-2 border-[#30363D] p-2 flex flex-col items-center justify-center text-center">
+              <div class="text-[#6B7280] text-[10px] sm:text-xs mono mb-2">CLASSIFIED</div>
+              <div class="text-[#E06C75] text-lg sm:text-2xl mono font-black">[ X ]</div>
+              <div class="text-[#6B7280] text-[8px] sm:text-[10px] mt-2">TOP SECRET</div>
+            </div>
+            <div class="card-back bg-[#1a2332] border-2 border-[#56b6c2] p-2 flex flex-col items-center justify-center text-center">
+              <div class="text-[#E5C07B] text-xs sm:text-sm font-bold" data-name></div>
+              <div class="text-[#56b6c2] text-[10px] sm:text-xs mt-1" data-en></div>
+              <div class="text-[#98C379] text-[8px] mt-2 mono border border-[#98C379]/40 px-1.5 py-0.5 rounded">PASS</div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div id="cards-grid" class="contents"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S09 — Workspace (DEMO)
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="w-full max-w-5xl">
+    <div class="reveal text-center mb-6">
+      <div class="inline-block px-4 py-1.5 border border-[#98C379]/40 rounded-full text-[#98C379] text-xs mono mb-6">LIVE DEMO · NODE 03</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">调制台</h2>
+      <div class="w-16 h-0.5 bg-[#98C379] mx-auto mt-4"></div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 items-center justify-center">
+      <div class="reveal w-64 lg:w-80">
+        <div class="text-center text-[#6B7280] mono text-xs mb-3">ACTIVE MISSION: 金汤力 · GIN TONIC</div>
+        <div class="relative mx-auto w-32 h-56">
+          <div class="absolute inset-0 border-2 border-[#56b6c2]/40 rounded-b-3xl rounded-t-lg overflow-hidden" style="background:rgba(86,182,194,0.03);">
+            <div class="absolute bottom-0 left-1 right-1 h-12 bg-[#56b6c2]/20 rounded-b-3xl flex items-center justify-center pour" style="animation-delay:0.3s"><span class="text-[8px] text-[#56b6c2]/60 mono">ICE</span></div>
+            <div class="absolute bottom-12 left-1 right-1 h-16 bg-[#E5C07B]/15 flex items-center justify-center pour" style="animation-delay:0.6s"><span class="text-[8px] text-[#E5C07B]/60 mono">GIN</span></div>
+            <div class="absolute bottom-28 left-1 right-1 h-14 bg-[#E06C75]/10 flex items-center justify-center pour" style="animation-delay:0.9s"><span class="text-[8px] text-[#E06C75]/40 mono">TONIC</span></div>
+            <div class="absolute top-2 left-3 w-8 h-8 rounded-full bg-[#E5C07B]/20 flex items-center justify-center pour" style="animation-delay:1.2s"><span class="text-[7px] text-[#E5C07B]/60 mono">LEMON</span></div>
+          </div>
+        </div>
+        <div class="text-center mt-6 hidden" id="mix-btn-wrap">
+          <button id="mix-btn" class="px-8 sm:px-10 py-3 bg-[#56b6c2] text-[#0D1117] font-extrabold mono text-lg sm:text-xl rounded hover:bg-[#6cc9d3] transition-all shadow-[0_0_30px_rgba(86,182,194,0.3)]">
+            [ MIX ]
+          </button>
+        </div>
+      </div>
+
+      <div class="reveal flex-1 max-w-md">
+        <div class="bg-[#161B22] border border-[#30363D] rounded-lg p-4">
+          <div class="text-[#56b6c2] mono text-xs mb-3">INGREDIENT WAREHOUSE · 43 ITEMS</div>
+          <div class="grid grid-cols-4 gap-2" id="ingredient-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pass-overlay" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none hidden">
+      <div class="text-center pass-flash">
+        <div class="text-[#98C379] text-6xl sm:text-9xl font-black mono" style="text-shadow:0 0 80px rgba(152,195,121,0.8);">PASS</div>
+        <div class="text-[#ABB2BF] text-sm mt-2 mono">配方验证通过 ✓</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S10 — Graduation (DEMO)
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="w-full max-w-3xl text-center">
+    <div class="reveal">
+      <div class="inline-block px-4 py-1.5 border border-[#E5C07B]/40 rounded-full text-[#E5C07B] text-xs mono mb-6">LIVE DEMO · NODE 04</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">毕业证书</h2>
+      <div class="w-16 h-0.5 bg-[#E5C07B] mx-auto mt-4"></div>
+    </div>
+
+    <div class="reveal mt-8 bg-[#161B22] border-2 border-[#E5C07B] rounded-lg p-8 sm:p-12 max-w-lg mx-auto relative overflow-hidden shadow-[0_0_60px_rgba(229,192,123,0.1)]">
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+        <div class="text-[#E5C07B] text-7xl font-black mono -rotate-12">OFFICIAL PASSED</div>
+      </div>
+      <div class="relative z-10">
+        <div class="text-[#6B7280] mono text-xs mb-2">CLOUD AGENT ACADEMY</div>
+        <div class="text-[#E5C07B] text-2xl sm:text-3xl font-black">毕业证书</div>
+        <div class="w-16 h-px bg-[#E5C07B] mx-auto mt-4 mb-6"></div>
+        <div class="space-y-3 text-sm sm:text-base">
+          <div><span class="text-[#6B7280]">特工代号</span> <span class="text-white font-bold ml-2">ZHANG WEI</span></div>
+          <div><span class="text-[#6B7280]">员工编号</span> <span class="text-[#56b6c2] font-bold ml-2 mono">MU-8823</span></div>
+          <div><span class="text-[#6B7280]">完成配方</span> <span class="text-[#98C379] font-bold ml-2">23 / 23</span></div>
+          <div><span class="text-[#6B7280]">失败次数</span> <span class="text-[#E06C75] font-bold ml-2 mono">3</span></div>
+          <div class="mt-4 pt-4 border-t border-[#30363D]">
+            <span class="text-[#6B7280]">评级</span>
+            <span class="text-[#E5C07B] text-3xl font-black ml-3" style="text-shadow:0 0 20px rgba(229,192,123,0.5);">PROFICIENT</span>
+          </div>
+        </div>
+        <div class="absolute -right-2 -bottom-2 stamp hidden" id="cert-stamp">
+          <div class="text-[#E06C75] text-5xl font-black mono border-4 border-[#E06C75] rounded-full w-28 h-28 flex items-center justify-center -rotate-12 opacity-70">PASS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S11 — 培训价值
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s11">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#56b6c2]/40 rounded-full text-[#56b6c2] text-xs mono mb-6">VALUE</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">培训价值</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+      <p class="text-[#6B7280] text-sm mt-4">降本增效 + 数据驱动 + 体验升级</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
+      <div class="reveal bg-[#161B22] rounded-lg overflow-hidden">
+        <div class="bg-[#98C379] px-4 py-3 text-[#0D1117] font-black text-center">降本增效</div>
+        <div class="p-5 space-y-3">
+          <div class="text-[#6B7280] text-sm">→ 替代纸质手册，23款饮品随时查阅</div>
+          <div class="text-[#6B7280] text-sm">→ 新人自主训练，减少教员一对一辅导</div>
+          <div class="text-[#6B7280] text-sm">→ 配方更新无需重印，后台即时生效</div>
+        </div>
+      </div>
+      <div class="reveal bg-[#161B22] rounded-lg overflow-hidden">
+        <div class="bg-[#56b6c2] px-4 py-3 text-[#0D1117] font-black text-center">数据驱动</div>
+        <div class="p-5 space-y-3">
+          <div class="text-[#6B7280] text-sm">→ 自动记录训练次数和通过率</div>
+          <div class="text-[#6B7280] text-sm">→ 量化评估培训效果，有据可依</div>
+          <div class="text-[#6B7280] text-sm">→ 发现高频失败配方，针对性强化</div>
+        </div>
+      </div>
+      <div class="reveal bg-[#161B22] rounded-lg overflow-hidden">
+        <div class="bg-[#E5C07B] px-4 py-3 text-[#0D1117] font-black text-center">体验升级</div>
+        <div class="p-5 space-y-3">
+          <div class="text-[#6B7280] text-sm">→ 反复练习不消耗实物物料</div>
+          <div class="text-[#6B7280] text-sm">→ 学习路径更短，不再枯燥背书</div>
+          <div class="text-[#6B7280] text-sm">→ 游戏化机制提升学习积极性</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S12 — 后续规划
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s12">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-8">
+      <div class="inline-block px-4 py-1.5 border border-[#E5C07B]/40 rounded-full text-[#E5C07B] text-xs mono mb-6">ROADMAP</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">后续规划</h2>
+      <div class="w-20 h-0.5 bg-[#E5C07B] mx-auto mt-4"></div>
+    </div>
+
+    <div class="space-y-4 max-w-2xl mx-auto">
+      <div class="reveal flex items-stretch gap-0">
+        <div class="bg-[#98C379] text-[#0D1117] font-black px-4 py-4 rounded-l-lg flex items-center justify-center text-sm min-w-[70px]">近期</div>
+        <div class="bg-[#161B22] border border-[#30363D] border-l-0 rounded-r-lg p-4 flex-1 flex flex-wrap gap-3">
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">配方管理后台</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">排行榜（同机组PK）</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">配方数据后端持久化</span>
+        </div>
+      </div>
+      <div class="reveal flex items-stretch gap-0">
+        <div class="bg-[#56b6c2] text-[#0D1117] font-black px-4 py-4 rounded-l-lg flex items-center justify-center text-sm min-w-[70px]">中期</div>
+        <div class="bg-[#161B22] border border-[#30363D] border-l-0 rounded-r-lg p-4 flex-1 flex flex-wrap gap-3">
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">限时挑战模式</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">错题本（自动重练）</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">管理员独立后台</span>
+        </div>
+      </div>
+      <div class="reveal flex items-stretch gap-0">
+        <div class="bg-[#E5C07B] text-[#0D1117] font-black px-4 py-4 rounded-l-lg flex items-center justify-center text-sm min-w-[70px]">远期</div>
+        <div class="bg-[#161B22] border border-[#30363D] border-l-0 rounded-r-lg p-4 flex-1 flex flex-wrap gap-3">
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">AI 客舱情景对话</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">餐食/免税品/安全拓展</span>
+          <span class="bg-[#0D1117] border border-[#30363D] rounded px-3 py-1.5 text-xs text-[#ABB2BF]">国际化（英文版）</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+  S13 — End: PWA + QR + Footer
+  ═══════════════════════════════════════════ -->
+<section class="section" id="s13">
+  <div class="w-full max-w-4xl text-center">
+    <div class="reveal mb-8">
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">PWA READY</h2>
+      <div class="w-20 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+      <p class="text-[#6B7280] text-sm mt-4">一个版本 · 全设备 · 离线可用</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-2xl mx-auto mb-10">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center hover:border-[#56b6c2] transition-colors">
+        <div class="text-3xl mb-3">📱</div>
+        <div class="text-white font-bold mb-1">零安装</div>
+        <div class="text-[#6B7280] text-xs">扫码即用，添加到桌面即变原生 App</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center hover:border-[#98C379] transition-colors">
+        <div class="text-3xl mb-3">✈️</div>
+        <div class="text-white font-bold mb-1">离线可用</div>
+        <div class="text-[#6B7280] text-xs">飞机上断网照样练习，全资源缓存</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-5 text-center hover:border-[#E5C07B] transition-colors">
+        <div class="text-3xl mb-3">🔄</div>
+        <div class="text-white font-bold mb-1">自动更新</div>
+        <div class="text-[#6B7280] text-xs">刷新即最新版，全员同步</div>
+      </div>
+    </div>
+
+    <div class="reveal inline-block bg-white p-4 rounded-xl shadow-[0_0_40px_rgba(86,182,194,0.2)]">
+      <div id="qrcode" class="mx-auto"></div>
+    </div>
+    <div class="reveal mt-4 text-[#6B7280] text-xs mono">扫码体验 · academy.boluomate.com</div>
+
+    <div class="reveal mt-12 pt-6 border-t border-[#30363D] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] sm:text-xs">
+      <div class="text-[#E5C07B] font-bold mono">
+        <span class="text-[#98C379]/60 mr-1">●</span>CLOUD AGENT ACADEMY
+        <span class="text-[#E5C07B]/60 ml-1">云端特勤学院 · v2.2</span>
+      </div>
+      <div class="text-[#6B7280]">build 2026-06-24</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ═══════════════════════════════════════════
+// AMBIENT PARTICLES
+// ═══════════════════════════════════════════
+(function() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${Math.random()*3+1}px; height:${Math.random()*3+1}px;
+      background:rgba(86,182,194,${Math.random()*0.3+0.1});
+      border-radius:50%;
+      animation-duration:${Math.random()*15+10}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+
+// ═══════════════════════════════════════════
+// BOOT SEQUENCE
+// ═══════════════════════════════════════════
+(function() {
+  const log = document.getElementById('boot-log');
+  const done = document.getElementById('boot-done');
+  const lines = [
+    '[ BIOS ] CLOUD AGENT ACADEMY — BOOT SEQUENCE INITIATED',
+    '[ OK ] Kernel v2.2 loaded',
+    '[ OK ] Memory check: 43 ingredients indexed',
+    '[ OK ] Mission database: 23 recipes verified',
+    '[ OK ] Secure channel: academy.boluomate.com',
+    '[ OK ] PWA Service Worker: cache-first strategy',
+    '[ OK ] Sprite system: 43 icons preloaded',
+    '[ .. ] Initializing terminal interface...',
+    '[ OK ] Terminal ready',
+    '',
+    '>>> SYSTEM ONLINE <<<',
+  ];
+  let i=0, charIdx=0, currentLine='';
+  function typeChar() {
+    if (i >= lines.length) { done.classList.remove('hidden'); log.classList.add('cursor-done'); return; }
+    if (charIdx === 0) {
+      currentLine = lines[i];
+      const div = document.createElement('div'); div.className='boot-line show'; div.id='boot-'+i; log.appendChild(div);
+    }
+    if (charIdx < currentLine.length) {
+      document.getElementById('boot-'+i).textContent += currentLine[charIdx];
+      charIdx++; setTimeout(typeChar, Math.random()*30+10);
+    } else { charIdx=0; i++; setTimeout(typeChar, i===lines.length?200:Math.random()*150+50); }
+  }
+  setTimeout(typeChar, 300);
+})();
+
+// ═══════════════════════════════════════════
+// LOGIN TYPING
+// ═══════════════════════════════════════════
+(function() {
+  const el = document.getElementById('login-line1');
+  const text = 'CLOUD AGENT ACADEMY INITIALIZING SYSTEM...';
+  let idx=0;
+  function type() {
+    if (idx<text.length){el.textContent+=text[idx];idx++;setTimeout(type,40)}
+    else{el.classList.add('cursor-done');setTimeout(()=>{document.getElementById('login-line2').classList.remove('hidden');document.getElementById('login-form').classList.remove('hidden')},500)}
+  }
+  const obs = new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){setTimeout(type,600);obs.disconnect()}})},{threshold:0.5});
+  obs.observe(document.getElementById('s7'));
+})();
+
+// ═══════════════════════════════════════════
+// STAT COUNTERS
+// ═══════════════════════════════════════════
+(function() {
+  const counters = document.querySelectorAll('.stat-number[data-target]');
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const el=e.target, target=parseInt(el.dataset.target), duration=1500;
+        let start=null;
+        function animate(ts){
+          if(!start)start=ts;
+          const progress=Math.min((ts-start)/duration,1);
+          const ease=1-Math.pow(1-progress,3);
+          el.textContent=Math.floor(ease*target);
+          if(progress<1)requestAnimationFrame(animate); else el.textContent=target;
+        }
+        requestAnimationFrame(animate); obs.unobserve(el);
+      }
+    });
+  },{threshold:0.5});
+  counters.forEach(c=>obs.observe(c));
+})();
+
+// ═══════════════════════════════════════════
+// MISSION CARDS
+// ═══════════════════════════════════════════
+(function() {
+  const missions = [
+    {name:'金汤力',en:'Gin Tonic'},{name:'螺丝钻',en:'Screwdriver'},{name:'自由古巴',en:'Cuba Libra'},
+    {name:'黑俄罗斯',en:'Black Russian'},{name:'白俄罗斯',en:'White Russian'},
+    {name:'百香柠柠',en:'Passion Lemon'},{name:'日出东方',en:'Sunrise'},
+    {name:'柠夏',en:'Summer Lemon'},{name:'云上',en:'Cloud Above'},
+    {name:'橙C美式',en:'Orange C Americano'},
+  ];
+  const tpl=document.getElementById('card-tpl'), grid=document.getElementById('cards-grid');
+  missions.forEach((m,i)=>{
+    const clone=tpl.content.cloneNode(true);
+    clone.querySelector('[data-name]').textContent=m.name;
+    clone.querySelector('[data-en]').textContent=m.en;
+    const wrapper=clone.querySelector('.card-flip'), inner=wrapper.querySelector('.card-flip-inner');
+    let flipped=false;
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&!flipped){setTimeout(()=>{inner.classList.add('flipped');flipped=true},i*80+300);obs.disconnect()}})},{threshold:0.3});
+    obs.observe(wrapper);
+    wrapper.addEventListener('mouseenter',()=>{if(!flipped){inner.classList.add('flipped');flipped=true}});
+    wrapper.addEventListener('click',()=>{inner.classList.toggle('flipped');flipped=!flipped});
+    grid.appendChild(wrapper);
+  });
+})();
+
+// ═══════════════════════════════════════════
+// INGREDIENTS + MIX
+// ═══════════════════════════════════════════
+(function() {
+  const ingredients = [
+    {id:'ice',label:'冰块'},{id:'gin',label:'金酒'},{id:'tonic',label:'汤力水'},{id:'lemon_jc',label:'柠檬汁'},
+    {id:'lemon_slice',label:'柠檬片'},{id:'vodka',label:'伏特加'},{id:'rum',label:'朗姆酒'},{id:'cola',label:'可乐'},
+    {id:'soda',label:'苏打水'},{id:'milk',label:'牛奶'},{id:'mint',label:'薄荷叶'},{id:'coffee',label:'咖啡'},
+    {id:'orange_jc',label:'鲜橙汁'},{id:'champagne',label:'香槟'},{id:'sugar',label:'砂糖'},{id:'cherry',label:'樱桃'},
+    {id:'salt',label:'盐'},{id:'tea',label:'普洱茶'},{id:'sprite',label:'雪碧'},{id:'water',label:'矿泉水'},
+  ];
+  const grid=document.getElementById('ingredient-grid');
+  ingredients.forEach(ing=>{
+    const btn=document.createElement('button');
+    btn.className='bg-[#0D1117] border border-[#30363D] rounded p-1.5 text-[10px] sm:text-xs text-[#ABB2BF] hover:border-[#56b6c2] hover:text-[#56b6c2] transition-all mono text-center cursor-pointer';
+    btn.textContent=ing.label;
+    btn.onclick=function(){this.classList.toggle('border-[#98C379]');this.classList.toggle('text-[#98C379]');this.classList.toggle('bg-[#98C379]/10')};
+    grid.appendChild(btn);
+  });
+  document.getElementById('mix-btn').addEventListener('click',()=>{
+    const overlay=document.getElementById('pass-overlay');
+    overlay.classList.remove('hidden');
+    overlay.querySelector('.pass-flash').style.animation='none';
+    overlay.querySelector('.pass-flash').offsetHeight;
+    overlay.querySelector('.pass-flash').style.animation='passFlash 1.5s ease-out forwards';
+    setTimeout(()=>overlay.classList.add('hidden'),1500);
+  });
+})();
+
+// ═══════════════════════════════════════════
+// SCROLL REVEAL + CERT STAMP
+// ═══════════════════════════════════════════
+(function() {
+  const observer = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        if(e.target.closest('#s10')){setTimeout(()=>{const s=document.getElementById('cert-stamp');if(s)s.classList.remove('hidden')},600)}
+        if(e.target.closest('#s9')){setTimeout(()=>{const m=document.getElementById('mix-btn-wrap');if(m)m.classList.remove('hidden')},1200)}
+      }
+    });
+  },{threshold:0.2});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+  // QR Code
+  const qrObs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting&&!document.getElementById('qrcode').hasChildNodes()){
+        new QRCode(document.getElementById('qrcode'),{text:'https://academy.boluomate.com',width:160,height:160,colorDark:'#0D1117',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.L});
+        qrObs.disconnect();
+      }
+    });
+  },{threshold:0.3});
+  qrObs.observe(document.querySelector('#qrcode').parentElement.parentElement);
+})();
+
+// ═══════════════════════════════════════════
+// NAV DOTS (dynamic)
+// ═══════════════════════════════════════════
+(function() {
+  const sections = document.querySelectorAll('.section');
+  const nav = document.getElementById('nav-dots');
+  const totalSections = sections.length;
+
+  // Create nav dots dynamically
+  for (let i = 0; i < totalSections; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer' + (i===0?' active':'');
+    dot.dataset.section = i;
+    dot.addEventListener('click', () => {
+      document.getElementById('s'+i).scrollIntoView({behavior:'smooth'});
+    });
+    nav.appendChild(dot);
+  }
+
+  const dots = document.querySelectorAll('.nav-dot');
+  const observer = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const idx=parseInt(e.target.id.replace('s',''));
+        dots.forEach(d=>d.classList.remove('active'));
+        const dot=document.querySelector(`.nav-dot[data-section="${idx}"]`);
+        if(dot)dot.classList.add('active');
+      }
+    });
+  },{threshold:0.5});
+  sections.forEach(s=>observer.observe(s));
+})();
+</script>
+</body>
+</html>
