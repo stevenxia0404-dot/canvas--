@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云端特勤局学院 · 产品体验演示</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+:root {
+  --bg: #0D1117;
+  --card: #161B22;
+  --cyan: #56B6C2;
+  --gold: #E5C07B;
+  --green: #98C379;
+  --red: #E06C75;
+  --white: #FFFFFF;
+  --gray: #ABB2BF;
+  --muted: #6B7280;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--gray);
+  overflow-x: hidden;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.section {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  padding: 2rem;
+}
+
+/* CRT scanlines */
+.scanlines::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* Glitch text */
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+}
+.glitch { animation: glitch 0.3s ease-in-out; }
+
+/* Typewriter cursor */
+@keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+.cursor::after {
+  content: '▊';
+  animation: blink 1s step-end infinite;
+  color: var(--cyan);
+}
+
+.cursor-done::after { content: ''; animation: none; }
+
+/* 3D Card Flip */
+.card-flip { perspective: 800px; }
+.card-flip-inner {
+  position: relative; width: 100%; height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.card-flip-inner.flipped { transform: rotateY(180deg); }
+.card-front, .card-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-back { transform: rotateY(180deg); }
+
+/* Glass filling */
+@keyframes pourIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.pour { animation: pourIn 0.4s ease-out forwards; }
+
+/* Stamp */
+@keyframes stampDown {
+  0% { transform: scale(3) rotate(-15deg); opacity: 0; }
+  60% { transform: scale(0.9) rotate(2deg); opacity: 1; }
+  80% { transform: scale(1.05) rotate(-1deg); }
+  100% { transform: scale(1) rotate(-8deg); opacity: 0.85; }
+}
+.stamp { animation: stampDown 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+/* PASS flash */
+@keyframes passFlash {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.pass-flash { animation: passFlash 1.5s ease-out forwards; }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Pulse ring */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(86,182,194,0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(86,182,194,0); }
+  100% { box-shadow: 0 0 0 0 rgba(86,182,194,0); }
+}
+.pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+
+/* Float */
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float { animation: float 3s ease-in-out infinite; }
+
+/* Progress bar fill */
+@keyframes fillBar {
+  from { width: 0%; }
+}
+
+/* Spin slow */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-slow { animation: spin-slow 20s linear infinite; }
+
+/* Signal dots */
+@keyframes signalPulse {
+  0%,100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.sig1 { animation: signalPulse 2s ease-in-out infinite; }
+.sig2 { animation: signalPulse 2s ease-in-out 0.3s infinite; }
+.sig3 { animation: signalPulse 2s ease-in-out 0.6s infinite; }
+
+/* Terminal boot lines */
+.boot-line { opacity: 0; }
+.boot-line.show { opacity: 1; transition: opacity 0.1s; }
+
+/* Nav dots */
+.nav-dot { transition: all 0.3s; }
+.nav-dot.active { background: var(--cyan); transform: scale(1.5); }
+
+/* ── Responsive ── */
+/* Phone (< 640px) */
+@media (max-width: 639px) {
+  .section { padding: 1rem 0.75rem; min-height: auto; padding-top: 3rem; padding-bottom: 3rem; }
+  #s0 .mono { font-size: 10px !important; line-height: 1.4 !important; }
+  #s0 .mono div { word-break: break-all; }
+  #boot-done .text-2xl { font-size: 1.25rem !important; }
+  .nav-dot { width: 8px; height: 8px; }
+  nav.fixed { right: 6px; gap: 6px; }
+  #cards-grid .card-flip { min-height: 120px; }
+  .card-front .mono.text-lg { font-size: 1rem !important; }
+  .card-front .mono.text-2xl { font-size: 1.25rem !important; }
+  .card-back .font-bold { font-size: 10px !important; }
+  .card-back [data-en] { font-size: 8px !important; }
+  #s3 .flex-col { gap: 1rem; }
+  #s3 .w-64 { width: 100%; max-width: 220px; }
+  #s3 .w-32 { width: 6rem; }
+  #s3 .h-56 { height: 10rem; }
+  #ingredient-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  #ingredient-grid button { padding: 4px 2px; font-size: 9px; }
+  #mix-btn { padding: 0.5rem 1.5rem; font-size: 1rem; }
+  #cert-stamp { right: -0.25rem; bottom: -0.25rem; }
+  #cert-stamp .w-28 { width: 4rem; height: 4rem; }
+  #cert-stamp .text-5xl { font-size: 1.25rem !important; }
+  #cert-stamp .border-4 { border-width: 2px; }
+  #qrcode canvas, #qrcode img { width: 120px !important; height: 120px !important; }
+  #s5 .grid { gap: 0.75rem; }
+  #s5 .grid > div { padding: 1rem; }
+  #s5 .text-4xl { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  footer .flex { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .pass-flash .text-6xl { font-size: 2.5rem !important; }
+  .pass-flash .text-9xl { font-size: 3rem !important; }
+}
+
+/* Tablet (640px - 1024px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .section { padding: 2rem 1.5rem; }
+  #cards-grid .card-flip { min-height: 150px; }
+  #s3 .flex-col.lg\:flex-row { flex-direction: column; }
+  #s3 .w-64 { width: 18rem; }
+  #qrcode canvas, #qrcode img { width: 140px !important; height: 140px !important; }
+}
+
+/* iPad Mini specific (768x1024 portrait) */
+@media (min-width: 640px) and (max-width: 768px) {
+  #cards-grid .card-flip { min-height: 130px; }
+  .card-back .font-bold { font-size: 11px !important; }
+  .card-back [data-en] { font-size: 9px !important; }
+}
+</style>
+</head>
+<body class="scanlines">
+
+<!-- Fixed nav dots -->
+<nav class="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3">
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer active" data-section="0"></div>
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer" data-section="1"></div>
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer" data-section="2"></div>
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer" data-section="3"></div>
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer" data-section="4"></div>
+  <div class="nav-dot w-3 h-3 rounded-full bg-white/20 cursor-pointer" data-section="5"></div>
+</nav>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 0 — Boot Sequence -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section relative overflow-hidden" id="s0">
+  <div class="absolute inset-0 bg-gradient-to-b from-[#0a0f14] to-[#0D1117] z-0"></div>
+  <div class="absolute inset-0 z-0" style="background: radial-gradient(ellipse at center, rgba(86,182,194,0.05) 0%, transparent 70%);"></div>
+
+  <div class="relative z-10 w-full max-w-2xl">
+    <div class="mono text-[#56b6c2] text-xs sm:text-sm leading-relaxed" id="boot-log">
+      <!-- filled by JS -->
+    </div>
+    <div class="mt-8 text-center hidden" id="boot-done">
+      <div class="text-[#98c379] text-2xl sm:text-4xl font-black mono glitch mb-4">SYSTEM ONLINE</div>
+      <div class="text-[#6B7280] text-sm mono">SCROLL TO CONTINUE</div>
+      <div class="mt-4 text-[#56b6c2] text-2xl animate-bounce">▼</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 1 — Terminal Login -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="w-full max-w-3xl">
+    <div class="reveal text-center mb-8">
+      <div class="text-[#56b6c2] mono text-xs sm:text-sm mb-4">NODE 01 — 身份认证</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">TERMINAL LOGIN</h2>
+      <div class="w-24 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 sm:p-10 max-w-lg mx-auto shadow-2xl">
+      <!-- Terminal header -->
+      <div class="flex gap-2 mb-6">
+        <div class="w-3 h-3 rounded-full bg-[#E06C75]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#E5C07B]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#98C379]"></div>
+      </div>
+
+      <div class="mono text-[#ABB2BF] text-xs sm:text-sm leading-relaxed">
+        <div class="text-[#56b6c2] mb-2 cursor" id="login-line1"></div>
+        <div class="text-[#6B7280] mt-4 hidden" id="login-line2">
+          > 欢迎来到云端特勤学院终端。<br>
+          > 请输入你的特工身份信息以继续。
+        </div>
+      </div>
+
+      <!-- Pseudo form -->
+      <div class="mt-6 space-y-3 hidden" id="login-form">
+        <div class="flex items-center gap-3 mono text-sm">
+          <span class="text-[#56b6c2] w-20">NAME:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#E5C07B] py-1 font-bold">ZHANG WEI</div>
+        </div>
+        <div class="flex items-center gap-3 mono text-sm">
+          <span class="text-[#56b6c2] w-20">EMP ID:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#98C379] py-1 font-bold">MU-8823</div>
+        </div>
+        <div class="flex items-center gap-3 mono text-sm">
+          <span class="text-[#56b6c2] w-20">DEPT:</span>
+          <div class="flex-1 border-b border-[#30363D] text-[#98C379] py-1 font-bold">客舱服务部</div>
+        </div>
+
+        <div class="mt-6 text-center">
+          <div class="inline-block px-8 py-3 border-2 border-[#56b6c2] text-[#56b6c2] font-extrabold mono text-lg cursor-pointer hover:bg-[#56b6c2] hover:text-[#0D1117] transition-all pulse-ring">
+            [ START MISSION ]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 2 — Mission Hall -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="w-full max-w-5xl">
+    <div class="reveal text-center mb-8">
+      <div class="text-[#56b6c2] mono text-xs sm:text-sm mb-4">NODE 02 — 任务选择</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">MISSION HALL</h2>
+      <div class="w-24 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+      <p class="text-[#6B7280] text-sm mt-4 max-w-xl mx-auto">23 款饮品配方 · 卡片翻牌揭晓 · 逐关解锁</p>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="reveal mb-8 max-w-2xl mx-auto">
+      <div class="mono text-xs text-[#6B7280] mb-2">MISSION PROGRESS: 17 / 23</div>
+      <div class="h-3 bg-[#161B22] border border-[#30363D] rounded overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-[#98C379] to-[#56b6c2] transition-all duration-1000" style="width:74%"></div>
+      </div>
+      <div class="flex justify-between mono text-[10px] text-[#6B7280] mt-1">
+        <span>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░</span>
+        <span>74%</span>
+      </div>
+    </div>
+
+    <!-- Mission cards grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 max-w-4xl mx-auto">
+      <template id="card-tpl">
+        <div class="card-flip cursor-pointer reveal" style="aspect-ratio:3/4">
+          <div class="card-flip-inner w-full h-full">
+            <div class="card-front bg-[#161B22] border-2 border-[#30363D] p-2 flex flex-col items-center justify-center text-center">
+              <div class="text-[#6B7280] text-[10px] sm:text-xs mono mb-2">CLASSIFIED</div>
+              <div class="text-[#E06C75] text-lg sm:text-2xl mono font-black">[ X ]</div>
+              <div class="text-[#6B7280] text-[8px] sm:text-[10px] mt-2">TOP SECRET</div>
+            </div>
+            <div class="card-back bg-[#1a2332] border-2 border-[#56b6c2] p-2 flex flex-col items-center justify-center text-center">
+              <div class="text-[#E5C07B] text-xs sm:text-sm font-bold" data-name></div>
+              <div class="text-[#56b6c2] text-[10px] sm:text-xs mt-1" data-en></div>
+              <div class="text-[#98C379] text-[8px] mt-2 mono border border-[#98C379]/40 px-1.5 py-0.5 rounded">PASS</div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div id="cards-grid" class="contents"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 3 — Workspace -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="w-full max-w-5xl">
+    <div class="reveal text-center mb-6">
+      <div class="text-[#56b6c2] mono text-xs sm:text-sm mb-4">NODE 03 — 调制台</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">WORKSPACE</h2>
+      <div class="w-24 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 items-center justify-center">
+      <!-- Glass visualization -->
+      <div class="reveal w-64 lg:w-80">
+        <div class="text-center text-[#6B7280] mono text-xs mb-3">ACTIVE MISSION: 金汤力 · GIN TONIC</div>
+        <div class="relative mx-auto w-32 h-56">
+          <!-- Glass outline -->
+          <div class="absolute inset-0 border-2 border-[#56b6c2]/40 rounded-b-3xl rounded-t-lg overflow-hidden" style="background: rgba(86,182,194,0.03);">
+            <!-- Layer 1: Ice -->
+            <div class="absolute bottom-0 left-1 right-1 h-12 bg-[#56b6c2]/20 rounded-b-3xl flex items-center justify-center pour" style="animation-delay:0.3s">
+              <span class="text-[8px] text-[#56b6c2]/60 mono">ICE</span>
+            </div>
+            <!-- Layer 2: Gin -->
+            <div class="absolute bottom-12 left-1 right-1 h-16 bg-[#E5C07B]/15 flex items-center justify-center pour" style="animation-delay:0.6s">
+              <span class="text-[8px] text-[#E5C07B]/60 mono">GIN</span>
+            </div>
+            <!-- Layer 3: Tonic -->
+            <div class="absolute bottom-28 left-1 right-1 h-14 bg-[#E06C75]/10 flex items-center justify-center pour" style="animation-delay:0.9s">
+              <span class="text-[8px] text-[#E06C75]/40 mono">TONIC</span>
+            </div>
+            <!-- Layer 4: Lemon -->
+            <div class="absolute top-2 left-3 w-8 h-8 rounded-full bg-[#E5C07B]/20 flex items-center justify-center pour" style="animation-delay:1.2s">
+              <span class="text-[7px] text-[#E5C07B]/60 mono">LEMON</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIX button -->
+        <div class="text-center mt-6 hidden" id="mix-btn-wrap">
+          <button id="mix-btn" class="px-10 py-3 bg-[#56b6c2] text-[#0D1117] font-extrabold mono text-xl rounded hover:bg-[#6cc9d3] transition-all shadow-[0_0_30px_rgba(86,182,194,0.3)]">
+            [ MIX ]
+          </button>
+        </div>
+      </div>
+
+      <!-- Ingredient panel -->
+      <div class="reveal flex-1 max-w-md">
+        <div class="bg-[#161B22] border border-[#30363D] rounded-lg p-4">
+          <div class="text-[#56b6c2] mono text-xs mb-3">INGREDIENT WAREHOUSE · 43 ITEMS</div>
+          <div class="grid grid-cols-4 gap-2" id="ingredient-grid">
+            <!-- generated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASS overlay -->
+    <div id="pass-overlay" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none hidden">
+      <div class="text-center pass-flash">
+        <div class="text-[#98C379] text-6xl sm:text-9xl font-black mono" style="text-shadow: 0 0 80px rgba(152,195,121,0.8);">PASS</div>
+        <div class="text-[#ABB2BF] text-sm mt-2 mono">配方验证通过 ✓</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 4 — Graduation -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="w-full max-w-3xl text-center">
+    <div class="reveal">
+      <div class="text-[#56b6c2] mono text-xs sm:text-sm mb-4">NODE 04 — 毕业</div>
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">GRADUATION</h2>
+      <div class="w-24 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+    </div>
+
+    <div class="reveal mt-8 bg-[#161B22] border-2 border-[#E5C07B] rounded-lg p-8 sm:p-12 max-w-lg mx-auto relative overflow-hidden shadow-[0_0_60px_rgba(229,192,123,0.1)]">
+      <!-- Watermark -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+        <div class="text-[#E5C07B] text-7xl font-black mono -rotate-12">OFFICIAL PASSED</div>
+      </div>
+
+      <div class="relative z-10">
+        <div class="text-[#6B7280] mono text-xs mb-2">CLOUD AGENT ACADEMY</div>
+        <div class="text-[#E5C07B] text-2xl sm:text-3xl font-black">毕业证书</div>
+        <div class="w-16 h-px bg-[#E5C07B] mx-auto mt-4 mb-6"></div>
+
+        <div class="space-y-3 text-sm sm:text-base">
+          <div><span class="text-[#6B7280]">特工代号</span> <span class="text-white font-bold ml-2">ZHANG WEI</span></div>
+          <div><span class="text-[#6B7280]">员工编号</span> <span class="text-[#56b6c2] font-bold ml-2 mono">MU-8823</span></div>
+          <div><span class="text-[#6B7280]">完成配方</span> <span class="text-[#98C379] font-bold ml-2">23 / 23</span></div>
+          <div><span class="text-[#6B7280]">失败次数</span> <span class="text-[#E06C75] font-bold ml-2 mono">3</span></div>
+          <div class="mt-4 pt-4 border-t border-[#30363D]">
+            <span class="text-[#6B7280]">评级</span>
+            <span class="text-[#E5C07B] text-3xl font-black ml-3" style="text-shadow: 0 0 20px rgba(229,192,123,0.5);">PROFICIENT</span>
+          </div>
+        </div>
+
+        <!-- Stamp -->
+        <div class="absolute -right-2 -bottom-2 stamp hidden" id="cert-stamp" style="animation-delay:0.5s">
+          <div class="text-[#E06C75] text-5xl font-black mono border-4 border-[#E06C75] rounded-full w-28 h-28 flex items-center justify-center -rotate-12 opacity-70">
+            PASS
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SECTION 5 — Features -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="w-full max-w-4xl">
+    <div class="reveal text-center mb-10">
+      <h2 class="text-[#E5C07B] text-3xl sm:text-5xl font-black tracking-widest mono">PWA READY</h2>
+      <div class="w-24 h-0.5 bg-[#56b6c2] mx-auto mt-4"></div>
+      <p class="text-[#6B7280] text-sm mt-4">一个版本 · 全设备 · 离线可用</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 text-center hover:border-[#56b6c2] transition-colors">
+        <div class="text-4xl mb-4">📱</div>
+        <div class="text-white font-bold mb-2">零安装</div>
+        <div class="text-[#6B7280] text-sm">扫码即用，无需应用商店<br>添加到桌面即变原生 App</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 text-center hover:border-[#98C379] transition-colors">
+        <div class="text-4xl mb-4">✈️</div>
+        <div class="text-white font-bold mb-2">离线可用</div>
+        <div class="text-[#6B7280] text-sm">飞机上断网照样练习<br>Service Worker 全资源缓存</div>
+      </div>
+      <div class="reveal bg-[#161B22] border border-[#30363D] rounded-lg p-6 text-center hover:border-[#E5C07B] transition-colors">
+        <div class="text-4xl mb-4">🔄</div>
+        <div class="text-white font-bold mb-2">自动更新</div>
+        <div class="text-[#6B7280] text-sm">刷新即最新版<br>全员同步，无需 IT 介入</div>
+      </div>
+    </div>
+
+    <div class="text-center mt-12">
+      <div class="reveal inline-block bg-white p-4 rounded-xl shadow-[0_0_40px_rgba(86,182,194,0.2)]">
+        <div id="qrcode" class="mx-auto"></div>
+      </div>
+      <div class="reveal mt-4 text-[#6B7280] text-xs mono">扫码体验  ·  academy.boluomate.com</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reveal mt-16 pt-8 border-t border-[#30363D] flex justify-between items-center text-[10px] sm:text-xs">
+      <div class="text-[#E5C07B] font-bold mono">
+        <span class="text-[#98C379]/60 mr-1">●</span>CLOUD AGENT ACADEMY
+        <span class="text-[#E5C07B]/60 ml-1">云端特勤学院 · v2.2</span>
+      </div>
+      <div class="text-[#6B7280]">build 2026-06-24</div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ═══════════════════════════════════════════
+// BOOT SEQUENCE
+// ═══════════════════════════════════════════
+(function boot() {
+  const log = document.getElementById('boot-log');
+  const done = document.getElementById('boot-done');
+  const lines = [
+    '[ BIOS ] CLOUD AGENT ACADEMY — BOOT SEQUENCE INITIATED',
+    '[ OK ] Kernel v2.2 loaded',
+    '[ OK ] Memory check: 43 ingredients indexed',
+    '[ OK ] Mission database: 23 recipes verified',
+    '[ OK ] Secure channel established: academy.boluomate.com',
+    '[ OK ] PWA Service Worker: cache-first strategy active',
+    '[ OK ] Sprite system: 43 icons preloaded',
+    '[ .. ] Initializing terminal interface...',
+    '[ OK ] Terminal ready',
+    '',
+    '>>> SYSTEM ONLINE <<<',
+  ];
+
+  let i = 0;
+  let charIdx = 0;
+  let currentLine = '';
+
+  function typeChar() {
+    if (i >= lines.length) {
+      done.classList.remove('hidden');
+      log.classList.add('cursor-done');
+      return;
+    }
+    if (charIdx === 0) {
+      currentLine = lines[i];
+      const div = document.createElement('div');
+      div.className = 'boot-line show';
+      div.id = 'boot-' + i;
+      log.appendChild(div);
+    }
+    if (charIdx < currentLine.length) {
+      document.getElementById('boot-' + i).textContent += currentLine[charIdx];
+      charIdx++;
+      setTimeout(typeChar, Math.random() * 30 + 10);
+    } else {
+      charIdx = 0;
+      i++;
+      setTimeout(typeChar, i === lines.length ? 200 : Math.random() * 150 + 50);
+    }
+  }
+
+  setTimeout(typeChar, 300);
+})();
+
+// ═══════════════════════════════════════════
+// LOGIN TYPING
+// ═══════════════════════════════════════════
+(function loginType() {
+  const el = document.getElementById('login-line1');
+  const text = 'CLOUD AGENT ACADEMY INITIALIZING SYSTEM...';
+  let idx = 0;
+  function type() {
+    if (idx < text.length) { el.textContent += text[idx]; idx++; setTimeout(type, 40); }
+    else {
+      el.classList.add('cursor-done');
+      setTimeout(() => {
+        document.getElementById('login-line2').classList.remove('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+      }, 500);
+    }
+  }
+  // Start when section becomes visible
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { setTimeout(type, 600); obs.disconnect(); } });
+  }, { threshold: 0.5 });
+  obs.observe(document.getElementById('s1'));
+})();
+
+// ═══════════════════════════════════════════
+// MISSION CARDS
+// ═══════════════════════════════════════════
+(function missionCards() {
+  const missions = [
+    { name:'金汤力', en:'Gin Tonic' },
+    { name:'螺丝钻', en:'Screwdriver' },
+    { name:'自由古巴', en:'Cuba Libra' },
+    { name:'黑俄罗斯', en:'Black Russian' },
+    { name:'白俄罗斯', en:'White Russian' },
+    { name:'含羞草', en:'Mimosa' },
+    { name:'百香柠柠', en:'Passion Lemon' },
+    { name:'日出东方', en:'Sunrise' },
+    { name:'踏雪', en:'Snow Step' },
+    { name:'柠夏', en:'Summer Lemon' },
+    { name:'仲夏', en:'Midsummer' },
+    { name:'云上', en:'Cloud Above' },
+    { name:'海屿', en:'Sea Island' },
+    { name:'橙C美式', en:'Orange C Americano' },
+    { name:'菠萝气泡美式', en:'Pineapple Bubbly' },
+  ];
+
+  const tpl = document.getElementById('card-tpl');
+  const grid = document.getElementById('cards-grid');
+
+  missions.forEach((m, i) => {
+    const clone = tpl.content.cloneNode(true);
+    clone.querySelector('[data-name]').textContent = m.name;
+    clone.querySelector('[data-en]').textContent = m.en;
+    const wrapper = clone.querySelector('.card-flip');
+    wrapper.style.transitionDelay = (i * 0.05) + 's';
+
+    // Random flip on scroll
+    const inner = wrapper.querySelector('.card-flip-inner');
+    let flipped = false;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !flipped) {
+          setTimeout(() => { inner.classList.add('flipped'); flipped = true; }, i * 80 + 300);
+          obs.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(wrapper);
+
+    wrapper.addEventListener('mouseenter', () => { if (!flipped) inner.classList.add('flipped'); flipped = true; });
+    wrapper.addEventListener('click', () => { inner.classList.toggle('flipped'); flipped = !flipped; });
+
+    grid.appendChild(wrapper);
+  });
+})();
+
+// ═══════════════════════════════════════════
+// INGREDIENT GRID + MIX
+// ═══════════════════════════════════════════
+(function workspace() {
+  const ingredients = [
+    { id:'ice', label:'冰块' },{ id:'gin', label:'金酒' },{ id:'tonic', label:'汤力水' },
+    { id:'lemon_jc', label:'柠檬汁' },{ id:'lemon_slice', label:'柠檬片' },{ id:'vodka', label:'伏特加' },
+    { id:'rum', label:'朗姆酒' },{ id:'cola', label:'可乐' },{ id:'soda', label:'苏打水' },
+    { id:'milk', label:'牛奶' },{ id:'mint', label:'薄荷叶' },{ id:'coffee', label:'咖啡' },
+    { id:'orange_jc', label:'鲜橙汁' },{ id:'champagne', label:'香槟' },{ id:'sugar', label:'砂糖' },
+    { id:'cherry', label:'樱桃' },{ id:'salt', label:'盐' },{ id:'tea', label:'普洱茶' },
+    { id:'sprite', label:'雪碧' },{ id:'water', label:'矿泉水' },
+  ];
+
+  const grid = document.getElementById('ingredient-grid');
+  ingredients.forEach(ing => {
+    const btn = document.createElement('button');
+    btn.className = 'bg-[#0D1117] border border-[#30363D] rounded p-1.5 text-[10px] sm:text-xs text-[#ABB2BF] hover:border-[#56b6c2] hover:text-[#56b6c2] transition-all mono text-center cursor-pointer';
+    btn.textContent = ing.label;
+    btn.onclick = function() {
+      this.classList.toggle('border-[#98C379]');
+      this.classList.toggle('text-[#98C379]');
+      this.classList.toggle('bg-[#98C379]/10');
+    };
+    grid.appendChild(btn);
+  });
+
+  // MIX button → PASS animation
+  document.getElementById('mix-btn').addEventListener('click', () => {
+    const overlay = document.getElementById('pass-overlay');
+    overlay.classList.remove('hidden');
+    overlay.querySelector('.pass-flash').style.animation = 'none';
+    overlay.querySelector('.pass-flash').offsetHeight; // reflow
+    overlay.querySelector('.pass-flash').style.animation = 'passFlash 1.5s ease-out forwards';
+    setTimeout(() => overlay.classList.add('hidden'), 1500);
+  });
+})();
+
+// ═══════════════════════════════════════════
+// SCROLL REVEAL + CERT STAMP
+// ═══════════════════════════════════════════
+(function scrollReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // Stamp appears when cert section is visible
+        if (e.target.closest('#s4')) {
+          setTimeout(() => {
+            const stamp = document.getElementById('cert-stamp');
+            if (stamp) stamp.classList.remove('hidden');
+          }, 600);
+        }
+        // Show MIX button when workspace visible
+        if (e.target.closest('#s3')) {
+          setTimeout(() => {
+            const mbw = document.getElementById('mix-btn-wrap');
+            if (mbw) mbw.classList.remove('hidden');
+          }, 1200);
+        }
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // QR Code generation
+  const qrObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !document.getElementById('qrcode').hasChildNodes()) {
+        new QRCode(document.getElementById('qrcode'), {
+          text: 'https://academy.boluomate.com',
+          width: 160, height: 160,
+          colorDark: '#0D1117', colorLight: '#FFFFFF',
+          correctLevel: QRCode.CorrectLevel.L,
+        });
+        qrObs.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  qrObs.observe(document.querySelector('#qrcode').parentElement.parentElement);
+})();
+
+// ═══════════════════════════════════════════
+// NAV DOTS
+// ═══════════════════════════════════════════
+(function navDots() {
+  const dots = document.querySelectorAll('.nav-dot');
+  const sections = document.querySelectorAll('.section');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = parseInt(e.target.id.replace('s',''));
+        dots.forEach(d => d.classList.remove('active'));
+        const dot = document.querySelector(`.nav-dot[data-section="${idx}"]`);
+        if (dot) dot.classList.add('active');
+      }
+    });
+  }, { threshold: 0.5 });
+
+  sections.forEach(s => observer.observe(s));
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const idx = dot.dataset.section;
+      document.getElementById('s' + idx).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+})();
+</script>
+</body>
+</html>
