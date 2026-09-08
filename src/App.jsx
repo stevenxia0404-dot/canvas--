@@ -117,7 +117,7 @@ const MISSIONS = [
   { id: 's2', name: '明亮前橙', enName: 'Bright Orange', category: 'special', variants: [{ glass: 'long_glass', seq: 'lemon_juice,orange_juice,salt,tonic,mint_leaf,stirrer' }], desc: '维C满满，明亮心情' },
   { id: 's3', name: '万家灯火', enName: 'Myriad Lights', category: 'special', variants: [{ glass: 'mug', seq: 'teapot,puer_tea,red_date_goji,red_date_goji' }, { glass: 'mug', seq: 'puer_tea,red_date_goji' }], desc: '温暖醇厚，万里归途' },
   { id: 's4', name: '仲夏', enName: 'Midsummer', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sour_plum_juice,soda,mint_leaf,stirrer' }], desc: '清凉解暑，夏日特饮' },
-  { id: 's5', name: '柠夏', enName: 'Summer Lemon', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_leaf,mint_leaf,ice,mint_leaf,mint_leaf,lemon_slice,lemon_slice,ice,lemon_juice,soda,mint_leaf,stirrer' }], desc: '薄荷柠香，冰爽一夏' },
+  { id: 's5', name: '柠夏', enName: 'Summer Lemon', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_leaf,ice,mint_leaf,lemon_slice,ice,lemon_juice,soda,mint_leaf,stirrer' }], desc: '薄荷柠香，冰爽一夏' },
   { id: 's6', name: '踏雪', enName: 'Snow Step', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,milk,coffee_pot,stirrer' }], desc: '奶咖交融，暖意融融' },
   { id: 's7', name: '薄荷咖啡', enName: 'Mint Coffee', category: 'special', variants: [{ glass: 'long_glass', seq: 'mint_liqueur,ice,coffee_pot,mint_leaf,stirrer' }], desc: '清凉提神，双重享受' },
   { id: 's8', name: '薄荷汽水', enName: 'Mint Soda', category: 'special', variants: [{ glass: 'long_glass', seq: 'ice,sprite,mint_liqueur,mint_leaf,stirrer' }], desc: '气泡跳跃，薄荷清凉' },
@@ -157,7 +157,7 @@ const BRIEFING_TEXT = `=========================================
     - 方案A (茶壶冲泡): 马克杯 | 茶壶, 普洱茶, 红枣枸杞, 红枣枸杞
     - 方案B (马克杯冲泡): 马克杯 | 普洱茶, 红枣枸杞
 13. 仲    夏 / Midsummer: 长饮杯 | 冰块, 酸梅汁, 苏打水, 薄荷叶, 搅拌棒
-14. 柠    夏 / Summer Lemon: 长饮杯 | 薄荷叶×2, 冰块, 薄荷叶×2, 柠檬片×2, 冰块, 柠檬汁, 苏打水, 薄荷叶, 搅拌棒
+14. 柠    夏 / Summer Lemon: 长饮杯 | 薄荷叶, 冰块, 薄荷叶, 柠檬片, 冰块, 柠檬汁, 苏打水, 薄荷叶, 搅拌棒
 15. 踏    雪 / Snow Step: 长饮杯 | 冰块, 牛奶, 咖啡, 搅拌棒
 16. 薄荷咖啡 / Mint Coffee: 长饮杯 | 薄荷糖浆, 冰块, 咖啡, 薄荷叶, 搅拌棒
 17. 薄荷汽水 / Mint Soda: 长饮杯 | 冰块, 雪碧, 薄荷糖浆, 薄荷叶, 搅拌棒
@@ -428,12 +428,13 @@ ESTABLISHING SECURE UPLINK... DONE
 // 组件：Node 2 任务大厅 (加入中英双语版式)
 // ==========================================
 const CATEGORIES = [
-  { id: 'bar', label: '🍸 云端酒廊', count: 9 },
-  { id: 'special', label: '🍵 客舱特调', count: 14 },
+  { id: 'bar', label: '🍸 云端酒廊', count: MISSIONS.filter(m => m.category === 'bar').length },
+  { id: 'special', label: '🍵 客舱特调', count: MISSIONS.filter(m => m.category === 'special').length },
 ];
 
-function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, togglePanel, missionResults, flippedMissions, setFlippedMissions, category, setCategory, onSecretClick }) {
+function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggleBriefing, togglePanel, missionResults, flippedMissions, setFlippedMissions, category, setCategory, onSecretClick, devReview }) {
   const filteredMissions = missions.filter(m => m.category === category);
+  const displayMissions = filteredMissions;
   const activeIndex = filteredMissions.findIndex(m => missionResults[m.id] !== 'PASS');
   const finalActiveIndex = activeIndex === -1 ? filteredMissions.length : activeIndex;
 
@@ -457,10 +458,10 @@ function MissionHall({ missions, onSelectMission, isAudioOn, toggleAudio, toggle
           </div>
         </div>
         <div className="relative z-20 flex-1 grid grid-cols-2 lg:grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 overflow-y-auto custom-scrollbar">
-          {filteredMissions.map((mission, index) => {
-            const isFlipped = flippedMissions.includes(mission.id);
+          {displayMissions.map((mission, index) => {
+            const isFlipped = devReview ? true : flippedMissions.includes(mission.id);
             const status = missionResults[mission.id];
-            const isLocked = index > finalActiveIndex;
+            const isLocked = !devReview && index > finalActiveIndex;
             return (
               <div key={mission.id} onClick={() => !isLocked && (isFlipped ? onSelectMission(mission) : setFlippedMissions([...flippedMissions, mission.id]))} className={`perspective w-full h-full ${isLocked ? 'cursor-not-allowed opacity-60 group' : 'cursor-pointer group'}`}>
                 <div className={`w-full h-full relative preserve-3d transition-transform duration-500 ease-out ${isFlipped ? 'rotate-y-180' : ''}`}>
@@ -717,6 +718,7 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [showBanner, setShowBanner] = useState(() => localStorage.getItem('bannerVersion') !== BANNER_VERSION);
   const [devData, setDevData] = useState(null);
+  const [devReview, setDevReview] = useState(false);
 
   const [category, setCategory] = useState('bar');
   const audioRef = useRef(null);
@@ -744,9 +746,8 @@ export default function App() {
     if (sFail) setFailCount(parseInt(sFail, 10));
     if (sShuf) {
       const parsed = JSON.parse(sShuf);
-      // 兼容旧版数据：无 category 字段则视为过期，自动刷新
-      if (parsed.length > 0 && !parsed[0].category) {
-        localStorage.removeItem('shuffledMissions');
+      // 兼容旧版：配方总数变化(新增/删减)则重新洗牌，已有通关记录按 mission id 保留
+      if (!Array.isArray(parsed) || parsed.length !== MISSIONS.length) {
         const rnd = [...MISSIONS].sort(()=>Math.random()-0.5);
         setShuffledMissions(rnd);
         localStorage.setItem('shuffledMissions', JSON.stringify(rnd));
@@ -773,7 +774,7 @@ export default function App() {
       localStorage.setItem('missionResults', JSON.stringify(missionResults));
       localStorage.setItem('flippedMissions', JSON.stringify(flippedMissions));
       localStorage.setItem('failCount', failCount.toString());
-      if (Object.values(missionResults).filter(r => r === 'PASS').length === 23) {
+      if (Object.values(missionResults).filter(r => r === 'PASS').length === MISSIONS.length) {
         if (currentView !== 'graduation') setTimeout(() => setCurrentView('graduation'), 1000);
       }
     }
@@ -827,7 +828,7 @@ export default function App() {
       {isPanelOpen && <UtilityPanel onClose={() => setPanelOpen(false)} showToast={showToast} />}
       
       {currentView === 'terminal' && <TerminalLogin onComplete={(data)=>{setAgentData(data);setCurrentView('mission_hall');fetch(`${API_BASE}/api/agents`,{method:'POST',headers:fetchOpts.headers,body:JSON.stringify(data)}).catch(()=>{})}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
-      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} />}
+      {currentView === 'mission_hall' && <MissionHall missions={shuffledMissions} missionResults={missionResults} flippedMissions={flippedMissions} setFlippedMissions={setFlippedMissions} onSelectMission={(m)=>{setCurrentMission(m);setCurrentView('workspace');}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={category} setCategory={setCategory} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} devReview={devReview} />}
       {currentView === 'workspace' && <Workspace currentMission={currentMission} onBack={()=>setCurrentView('mission_hall')} onMissionComplete={(id,s)=>{setMissionResults(p=>({...p,[id]:s})); if(s==='FAIL')setFailCount(c=>c+1)}} isAudioOn={isAudioOn} toggleAudio={()=>setIsAudioOn(!isAudioOn)} toggleBriefing={() => setShowBriefing(true)} category={currentMission?.category || 'bar'} onSecretClick={handleSecretClick} togglePanel={() => setPanelOpen(!isPanelOpen)} showToast={showToast} />}
       {currentView === 'graduation' && <Graduation agentData={agentData} onReset={()=>{localStorage.clear();window.location.reload();}} failCount={failCount} onSecretClick={handleSecretClick} />}
 
@@ -837,8 +838,8 @@ export default function App() {
                <span className="text-red-500">DEBUG CONSOLE</span>
                <button onClick={()=>{setDevData(null);closeDev()}} className="bg-red-900 px-1 rounded hover:bg-red-500">X</button>
             </div>
-            <button onClick={()=>setCurrentView('terminal')} className="text-left hover:bg-white/10">&gt; NODE 1 (LOGIN)</button>
-            <button onClick={()=>setCurrentView('mission_hall')} className="text-left hover:bg-white/10">&gt; NODE 2 (HALL)</button>
+            <button onClick={()=>{setDevReview(false);setCurrentView('terminal')}} className="text-left hover:bg-white/10">&gt; NODE 1 (LOGIN)</button>
+            <button onClick={()=>{setDevReview(true);setCurrentView('mission_hall')}} className="text-left text-[#56b6c2] hover:bg-white/10">&gt; NODE 2 (HALL)</button>
             <button onClick={()=>setCurrentView('workspace')} className="text-left hover:bg-white/10">&gt; NODE 3 (WORKSPACE)</button>
             <button onClick={()=>{setMissionResults(MISSIONS.reduce((acc,m)=>({...acc,[m.id]:'PASS'}), {}));setCurrentView('graduation')}} className="text-left text-[#98c379] hover:bg-white/10">&gt; HACK PASS ALL</button>
             <button onClick={()=>{localStorage.clear();window.location.reload()}} className="text-left text-[#e06c75] hover:bg-white/10">&gt; CLEAR CACHE</button>
